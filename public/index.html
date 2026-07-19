@@ -85,7 +85,9 @@ button{font-family:inherit; cursor:pointer; border:none;}
 .em.gone{opacity:.28; position:relative;}
 .em.gone::after{content:"✖"; position:absolute; left:0; right:0; top:-2px; color:var(--no); font-size:26px;}
 .gboxes{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
-.gbox{background:#f2eeff; border:2px dashed #b9a9ff; border-radius:14px; padding:8px; font-size:24px; letter-spacing:2px; max-width:150px;}
+.gbox{background:#f2eeff; border:2px dashed #b9a9ff; border-radius:14px; padding:7px; font-size:22px;
+  max-width:150px; display:flex; flex-wrap:wrap; gap:2px; justify-content:center; align-content:flex-start;}
+.gdot{line-height:1;}
 .big{font-size:38px; font-weight:800; letter-spacing:2px; color:var(--bg1);}
 
 /* vertical subtraction */
@@ -851,7 +853,10 @@ function illusHTML(il){
   }
   if(il.mode==="groups"){
     let s='<div class="gboxes">';
-    for(let g=0;g<il.g;g++){ s+='<div class="gbox">'+il.e.repeat(il.per)+'</div>'; }
+    for(let g=0;g<il.g;g++){
+      let inner=''; for(let i=0;i<il.per;i++){ inner+='<span class="gdot">'+il.e+'</span>'; }
+      s+='<div class="gbox">'+inner+'</div>';
+    }
     return s+'</div>';
   }
   if(il.mode==="compare"){
@@ -883,7 +888,8 @@ function bodyHTML(q){
     let h='<div class="mline">'+q.x+' × '+q.y+' =</div>';
     if(q.vis && q.x>0 && q.y>0){
       const g=Math.min(q.x,q.y), per=Math.max(q.x,q.y);
-      h+='<div class="illus">'+illusHTML({mode:"groups",e:"🔵",g:g,per:per})+'</div>';
+      // solo dibujamos si se puede contar de un vistazo (igual límite que mulHint)
+      if(g<=6 && per<=10) h+='<div class="illus">'+illusHTML({mode:"groups",e:"🔵",g:g,per:per})+'</div>';
     }
     return h;
   }
