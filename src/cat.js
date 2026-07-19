@@ -1,16 +1,22 @@
 // ================= GATO NEGRO PERSONALIZABLE (SVG por capas) =================
-// Devuelve un string SVG. st = {skin, eye, head, eyes, neck}
+// Devuelve un string SVG. st = {skin, eye, head, eyes, neck, back, mood}
+// mood: "" normal · "feliz" ojos de alegría · "uy" ojitos de ups
 const EYE_C = {verde:"#3ad07a", ambar:"#ffb02e", azul:"#4bb8ff", rosa:"#ff77c8", lila:"#b98cff"};
 
 function skinCfg(skin){
   // base = color del pelaje; ear = oreja interna; extras dibujados aparte
   const c = {
-    clasico:  {base:"#20202c", ear:"#ff9ec4", cheek:null},
-    esmoquin: {base:"#20202c", ear:"#ff9ec4", cheek:null},
-    corazon:  {base:"#20202c", ear:"#ff9ec4", cheek:"#ff9ec4"},
-    rayado:   {base:"#22222f", ear:"#ff9ec4", cheek:null},
-    vaca:     {base:"#20202c", ear:"#ff9ec4", cheek:null},
-    galaxia:  {base:"#251a44", ear:"#b98cff", cheek:null},
+    clasico:    {base:"#20202c", ear:"#ff9ec4", cheek:null},
+    esmoquin:   {base:"#20202c", ear:"#ff9ec4", cheek:null},
+    corazon:    {base:"#20202c", ear:"#ff9ec4", cheek:"#ff9ec4"},
+    rayado:     {base:"#22222f", ear:"#ff9ec4", cheek:null},
+    vaca:       {base:"#20202c", ear:"#ff9ec4", cheek:null},
+    calcetines: {base:"#20202c", ear:"#ff9ec4", cheek:null},
+    dorado:     {base:"#20202c", ear:"#ffcf6a", cheek:null},
+    sirena:     {base:"#20202c", ear:"#7de3d8", cheek:null},
+    solverano:  {base:"#20202c", ear:"#ffd27a", cheek:"#ffb45e"},
+    arcoiris:   {base:"#20202c", ear:"#ff9ec4", cheek:"#ffc4dd"},
+    galaxia:    {base:"#251a44", ear:"#b98cff", cheek:null},
   };
   return c[skin] || c.clasico;
 }
@@ -36,11 +42,46 @@ function skinMarks(skin){
       <ellipse cx="120" cy="180" rx="20" ry="15" fill="#fff"/>
       <ellipse cx="80" cy="205" rx="12" ry="9" fill="#fff"/>`;
   }
-  if(skin==="galaxia"){
+  if(skin==="calcetines"){
+    return `<ellipse cx="76" cy="222" rx="13" ry="9" fill="#fff"/>
+      <ellipse cx="124" cy="222" rx="13" ry="9" fill="#fff"/>
+      <path d="M100 168 q-14 4 -12 22 q12 12 24 0 q2 -18 -12 -22z" fill="#fff"/>
+      <path d="M94 116 q6 5 12 0 l-2 8 q-4 3 -8 0z" fill="#fff" opacity=".9"/>`;
+  }
+  if(skin==="dorado"){
     let s="";
+    const pts=[[72,66],[126,62],[96,74],[112,108],[70,128],[132,140],[86,176],[118,190],[100,205]];
+    pts.forEach(p=>{ s+=`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="#ffcf3f" opacity=".9"/>`; });
+    return s;
+  }
+  if(skin==="sirena"){
+    let s=`<path d="M56 190 Q100 236 144 190 L144 214 Q100 240 56 214 Z" fill="#3ecfc0" opacity=".9"/>`;
+    const rows=[[64,196],[84,204],[104,206],[124,200],[74,212],[94,216],[114,214],[134,206]];
+    rows.forEach(p=>{ s+=`<path d="M${p[0]} ${p[1]} q6 -8 12 0 q-6 6 -12 0z" fill="#7de3d8"/>`; });
+    return s;
+  }
+  if(skin==="solverano"){
+    let s=`<circle cx="100" cy="182" r="16" fill="#ffd24d"/>`;
+    for(let a=0;a<360;a+=45){
+      const r1=20, r2=28, x1=100+r1*Math.cos(a*Math.PI/180), y1=182+r1*Math.sin(a*Math.PI/180),
+            x2=100+r2*Math.cos(a*Math.PI/180), y2=182+r2*Math.sin(a*Math.PI/180);
+      s+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="#ffd24d" stroke-width="5" stroke-linecap="round"/>`;
+    }
+    s+=`<circle cx="94" cy="178" r="2.4" fill="#c78a00"/><circle cx="106" cy="178" r="2.4" fill="#c78a00"/>
+        <path d="M94 186 q6 6 12 0" stroke="#c78a00" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    return s;
+  }
+  if(skin==="arcoiris"){
+    const cols=["#ff5b5b","#ff9d2e","#ffd24d","#3ad07a","#4bb8ff","#b98cff"];
+    let s="";
+    cols.forEach((c,i)=>{ const r=34-i*4.5; s+=`<path d="M${100-r} 200 A${r} ${r} 0 0 1 ${100+r} 200" stroke="${c}" stroke-width="4.5" fill="none"/>`; });
+    return s;
+  }
+  if(skin==="galaxia"){
+    let s='<g class="gstars">';
     const pts=[[70,70],[128,66],[110,100],[80,120],[132,130],[92,168],[124,182],[68,150]];
     pts.forEach(p=>{ s+=`<g transform="translate(${p[0]},${p[1]})"><path d="M0 -4 L1 -1 L4 0 L1 1 L0 4 L-1 1 L-4 0 L-1 -1 Z" fill="#fff"/></g>`; });
-    return s;
+    return s+'</g>';
   }
   return "";
 }
@@ -71,6 +112,45 @@ function accNeck(id){
   if(id==="bufanda") return `<g><path d="M60 148 Q100 166 140 148 Q142 160 132 166 Q100 178 68 166 Q58 160 60 148 Z" fill="#ff9d2e"/><path d="M120 164 l14 34 -16 -4 -6 -26 Z" fill="#ff8a00"/></g>`;
   return "";
 }
+function accBack(id){
+  // se dibuja DETRÁS del cuerpo
+  if(!id) return "";
+  if(id==="alitas") return `<g><path d="M52 168 Q10 140 26 108 Q48 118 58 146 Q34 130 40 156 Z" fill="#cfe9ff" stroke="#8fc6f5" stroke-width="2"/>
+    <path d="M148 168 Q190 140 174 108 Q152 118 142 146 Q166 130 160 156 Z" fill="#cfe9ff" stroke="#8fc6f5" stroke-width="2"/></g>`;
+  if(id==="capa") return `<g><path d="M58 152 Q40 210 54 228 Q100 240 146 228 Q160 210 142 152 Q100 170 58 152 Z" fill="#ff5b5b"/>
+    <path d="M62 156 Q46 208 58 224 Q100 235 142 224 Q154 208 138 156 Q100 172 62 156 Z" fill="#e64545"/></g>`;
+  if(id==="mochila") return `<g><rect x="52" y="158" width="34" height="44" rx="12" fill="#4dc9e6" stroke="#2ba3c0" stroke-width="2"/>
+    <rect x="58" y="166" width="22" height="14" rx="6" fill="#fff" opacity=".85"/>
+    <rect x="114" y="158" width="34" height="44" rx="12" fill="#4dc9e6" stroke="#2ba3c0" stroke-width="2"/>
+    <rect x="120" y="166" width="22" height="14" rx="6" fill="#fff" opacity=".85"/></g>`;
+  return "";
+}
+
+function catEyes(st, iris){
+  const mood = st.mood || "";
+  if(mood==="feliz"){
+    return `<g class="eyesG" fill="none" stroke="#161620" stroke-width="6" stroke-linecap="round">
+      <path d="M62 98 q14 -16 28 0"/><path d="M110 98 q14 -16 28 0"/>
+    </g>`;
+  }
+  if(mood==="uy"){
+    return `<g class="eyesG">
+      <path d="M60 76 l24 8 M140 76 l-24 8" stroke="#161620" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="76" cy="96" rx="14" ry="16" fill="${iris}"/>
+      <ellipse cx="124" cy="96" rx="14" ry="16" fill="${iris}"/>
+      <ellipse cx="76" cy="100" rx="6" ry="9" fill="#161620"/>
+      <ellipse cx="124" cy="100" rx="6" ry="9" fill="#161620"/>
+    </g>`;
+  }
+  return `<g class="eyesG blink">
+    <ellipse cx="76" cy="94" rx="15" ry="19" fill="${iris}"/>
+    <ellipse cx="124" cy="94" rx="15" ry="19" fill="${iris}"/>
+    <ellipse cx="76" cy="96" rx="7" ry="12" fill="#161620"/>
+    <ellipse cx="124" cy="96" rx="7" ry="12" fill="#161620"/>
+    <circle cx="72" cy="88" r="4" fill="#fff"/>
+    <circle cx="120" cy="88" r="4" fill="#fff"/>
+  </g>`;
+}
 
 function catSVG(st){
   st = st||{};
@@ -79,11 +159,18 @@ function catSVG(st){
   const iris = EYE_C[st.eye||"verde"];
   const base = cf.base, out = "#454560";
   const cheek = cf.cheek;
+  const boca = (st.mood==="feliz")
+    ? `<path d="M100 121 q-9 12 -18 5 M100 121 q9 12 18 5" fill="none" stroke="#3a3a4d" stroke-width="2.5" stroke-linecap="round"/>`
+    : (st.mood==="uy")
+      ? `<path d="M92 128 q8 -6 16 0" fill="none" stroke="#3a3a4d" stroke-width="2.5" stroke-linecap="round"/>`
+      : `<path d="M100 121 q-8 9 -16 4 M100 121 q8 9 16 4" fill="none" stroke="#3a3a4d" stroke-width="2.5" stroke-linecap="round"/>`;
   return `<svg viewBox="0 0 200 235" class="cat">
     <!-- cola -->
-    <path d="M150 196 C196 186 190 120 156 130 C182 140 176 176 150 180 Z" fill="${base}" stroke="${out}" stroke-width="2"/>
+    <path class="tail" d="M150 196 C196 186 190 120 156 130 C182 140 176 176 150 180 Z" fill="${base}" stroke="${out}" stroke-width="2"/>
+    <!-- espalda (detrás del cuerpo) -->
+    ${accBack(st.back)}
     <!-- cuerpo -->
-    <ellipse cx="100" cy="184" rx="54" ry="48" fill="${base}" stroke="${out}" stroke-width="2"/>
+    <ellipse class="bodyE" cx="100" cy="184" rx="54" ry="48" fill="${base}" stroke="${out}" stroke-width="2"/>
     <ellipse cx="80" cy="220" rx="15" ry="10" fill="${base}" stroke="${out}" stroke-width="2"/>
     <ellipse cx="120" cy="220" rx="15" ry="10" fill="${base}" stroke="${out}" stroke-width="2"/>
     <!-- orejas -->
@@ -98,17 +185,10 @@ function catSVG(st){
     <!-- mejillas -->
     ${cheek?`<circle cx="62" cy="112" r="9" fill="${cheek}" opacity=".8"/><circle cx="138" cy="112" r="9" fill="${cheek}" opacity=".8"/>`:""}
     <!-- ojos -->
-    <g>
-      <ellipse cx="76" cy="94" rx="15" ry="19" fill="${iris}"/>
-      <ellipse cx="124" cy="94" rx="15" ry="19" fill="${iris}"/>
-      <ellipse cx="76" cy="96" rx="7" ry="12" fill="#161620"/>
-      <ellipse cx="124" cy="96" rx="7" ry="12" fill="#161620"/>
-      <circle cx="72" cy="88" r="4" fill="#fff"/>
-      <circle cx="120" cy="88" r="4" fill="#fff"/>
-    </g>
+    ${catEyes(st, iris)}
     <!-- nariz y boca -->
     <path d="M94 114 L106 114 L100 121 Z" fill="#ff7ab0"/>
-    <path d="M100 121 q-8 9 -16 4 M100 121 q8 9 16 4" fill="none" stroke="#3a3a4d" stroke-width="2.5" stroke-linecap="round"/>
+    ${boca}
     <!-- bigotes -->
     <g stroke="#5a5a70" stroke-width="2" stroke-linecap="round">
       <path d="M60 112 L26 104 M60 118 L26 120 M60 124 L28 134"/>

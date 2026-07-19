@@ -43,8 +43,11 @@ def uniq_subs(n, **kw):
 # ---------- constructores de preguntas ----------
 def sub(a, b): return {"t": "sub", "a": a, "b": b}
 def subs(n, **kw): return [sub(a, b) for a, b in uniq_subs(n, **kw)]
-def mul(x, y): return {"t": "mul", "x": x, "y": y}
-def muls(pairs): return [mul(x, y) for x, y in pairs]
+def mul(x, y, vis=0):
+    q = {"t": "mul", "x": x, "y": y}
+    if vis: q["vis"] = 1
+    return q
+def muls(pairs, vis=0): return [mul(x, y, vis) for x, y in pairs]
 def miss(a, b, r): return {"t": "miss", "a": a, "r": r}   # a x ? = r  (resp b)
 def prob(text, illus, ans): return {"t": "prob", "text": text, "illus": illus, "ans": ans}
 def steps(text, illus, parts): return {"t": "steps", "text": text, "illus": illus, "parts": parts}
@@ -52,6 +55,7 @@ def steps(text, illus, parts): return {"t": "steps", "text": text, "illus": illu
 def row(e, n, cross=0): return {"mode": "row", "e": e, "n": n, "cross": cross}
 def groups(e, g, per): return {"mode": "groups", "e": e, "g": g, "per": per}
 def bignum(txt): return {"mode": "bignum", "text": txt}
+def compare(e1, n1, e2, n2): return {"mode": "compare", "e1": e1, "n1": n1, "e2": e2, "n2": n2}
 
 # emojis
 AP="🍎"; GL="🎈"; FL="🌸"; CO="🪙"; CA="🍬"; CK="🍪"; FI="🐟"
@@ -112,6 +116,12 @@ INTRO[22] = ("El truco: ¡dar la vuelta!",
 INTRO[24] = ("Problemas de dos pasos",
     "<p>Algunos problemas tienen <b>dos pasos</b>. Haz primero una operación y usa el resultado para la segunda.</p>"
     "<p class='hint'>Ej: Tengo 20€, compro 3 helados de 2€. → 3 × 2 = 6€ · 20 − 6 = <b>14€</b></p>")
+INTRO[25] = ("La tabla del 8: ¡el doble del doble!",
+    "<p>Para multiplicar por 8: <b>dobla, dobla y dobla</b>. 8 × 3: el 3 → 6 → 12 → <b>24</b>.<br>"
+    "O piensa en la tabla del 4… ¡y dóblala!</p><div class='nline'>8 → 16 → 24 → 32 → 40 → 48</div>")
+INTRO[26] = ("El truco mágico de la tabla del 9",
+    "<p>En la tabla del 9, <b>las dos cifras del resultado suman 9</b>. Y las decenas son <b>uno menos</b> que el número.</p>"
+    "<p>👉 9 × 4: uno menos que 4 es <b>3</b>… y 3 + <b>6</b> = 9. ¡Es <b>36</b>!</p><div class='nline'>9 → 18 → 27 → 36 → 45</div>")
 INTRO[28] = ("Dos reglas mágicas",
     "<p>✨ Cualquier número <b>× 1</b> se queda igual: 7 × 1 = 7.<br>✨ Cualquier número <b>× 0</b> es 0: 7 × 0 = 0.</p>")
 
@@ -127,55 +137,67 @@ def day(n, theme, qs, new=False, repaso=False, diploma=False):
 day(1, "Empezamos: restas sin llevada", subs(6, lo_a=20, hi_a=99, lo_b=10, hi_b=99, borrows=0), new=True)
 day(2, "Restas con llevada", subs(6, lo_a=20, hi_a=99, lo_b=10, hi_b=89, borrows=1), new=True)
 day(3, "Practico restas con llevada",
-    subs(5, lo_a=30, hi_a=99, lo_b=10, hi_b=89, borrows=1) + [prob("Había 12 globos y se escaparon 5. ¿Cuántos quedan?", row(GL,12,5), 7)])
-day(4, "Multiplicar es sumar grupos", muls([(2,3),(2,5),(2,8),(2,6),(2,9),(2,4)]), new=True)
-day(5, "La tabla del 3", muls([(3,2),(3,4),(3,7),(3,5),(3,9),(3,6),(3,8),(3,3)]), new=True)
+    subs(4, lo_a=30, hi_a=99, lo_b=10, hi_b=89, borrows=1)
+    + subs(2, lo_a=200, hi_a=999, lo_b=100, hi_b=999, borrows=0)
+    + [prob("Había 12 globos y se escaparon 5. ¿Cuántos quedan?", row(GL,12,5), 7)])
+day(4, "Multiplicar es sumar grupos", muls([(2,3),(2,5),(2,8),(2,6),(2,9),(2,4)], vis=1), new=True)
+day(5, "La tabla del 3", muls([(3,2),(3,4),(3,7),(3,5),(3,9),(3,6),(3,8),(3,3)], vis=1), new=True)
 day(6, "Mezcla: restas y tablas",
-    subs(4, lo_a=30, hi_a=99, lo_b=10, hi_b=89, borrows=1) + muls([(2,7),(3,6),(2,9),(3,8)])
+    subs(3, lo_a=30, hi_a=99, lo_b=10, hi_b=89, borrows=1)
+    + subs(1, lo_a=200, hi_a=999, lo_b=110, hi_b=899, borrows=1)
+    + muls([(2,7),(3,6),(2,9),(3,8)])
     + [prob("Ana tiene 3 cajas y en cada caja hay 2 manzanas. ¿Cuántas manzanas tiene?", groups(AP,3,2), 6)])
 day(7, "Restas de 3 cifras", subs(6, lo_a=200, hi_a=999, lo_b=100, hi_b=999, borrows=0), new=True)
 day(8, "3 cifras con una llevada", subs(6, lo_a=200, hi_a=999, lo_b=110, hi_b=899, borrows=1), new=True)
 day(9, "Practico restas de 3 cifras",
     subs(5, lo_a=200, hi_a=999, lo_b=110, hi_b=899, borrows="any") + [prob("El álbum tiene 250 cromos y Laura ya pegó 134. ¿Cuántos le faltan?", bignum("250 − 134"), 116)])
-day(10, "La tabla del 4", muls([(4,2),(4,5),(4,3),(4,7),(4,4),(4,6),(4,8),(4,9)]), new=True)
+day(10, "La tabla del 4", muls([(4,2),(4,5),(4,3),(4,7),(4,4),(4,6),(4,8),(4,9)], vis=1), new=True)
 day(11, "Tabla del 4 y restas",
-    muls([(4,6),(4,3),(4,8),(4,5),(4,9),(4,7)]) + subs(3, lo_a=300, hi_a=999, lo_b=110, hi_b=799, borrows="any"))
-day(12, "La tabla del 5", muls([(5,3),(5,6),(5,2),(5,8),(5,4),(5,7),(5,9),(5,5)]), new=True)
+    muls([(4,6),(4,3),(4,8),(4,5),(4,9),(4,7)]) + [miss(4,6,24)] + subs(3, lo_a=300, hi_a=999, lo_b=110, hi_b=799, borrows="any"))
+day(12, "La tabla del 5", muls([(5,3),(5,6),(5,2),(5,8),(5,4),(5,7),(5,9),(5,5)], vis=1), new=True)
 day(13, "Tablas del 4 y del 5",
-    muls([(4,7),(5,6),(4,4),(5,9),(5,3),(4,8),(5,7),(4,6)]) + [prob("Hay 5 macetas y en cada una crecen 3 flores. ¿Cuántas flores hay?", groups(FL,5,3), 15)])
+    muls([(4,7),(5,6),(4,4),(5,9),(5,3),(4,8),(5,7),(4,6)]) + [miss(5,7,35), prob("Hay 5 macetas y en cada una crecen 3 flores. ¿Cuántas flores hay?", groups(FL,5,3), 15)])
 day(14, "Restas con dos llevadas", subs(6, lo_a=300, hi_a=999, lo_b=140, hi_b=899, borrows=2), new=True)
 day(15, "¡Mitad del camino! Gran repaso",
     subs(4, lo_a=200, hi_a=999, lo_b=110, hi_b=899, borrows="any") + muls([(3,7),(5,8),(4,6),(2,9)])
     + [prob("Había 18 globos y se explotaron 7. ¿Cuántos quedan?", row(GL,18,7), 11)], repaso=True)
-day(16, "La tabla del 10", muls([(10,3),(10,7),(10,5),(10,9),(10,2),(10,6),(10,8),(10,4)]), new=True)
+day(16, "La tabla del 10", muls([(10,3),(10,7),(10,5),(10,9),(10,2),(10,6),(10,8),(10,4)], vis=1), new=True)
 day(17, "Tablas del 5 y del 10",
-    muls([(5,7),(10,6),(5,9),(10,3),(5,4),(10,8)]) + [prob("Cada bolsa de cromos cuesta 5€. Laura compra 4 bolsas. ¿Cuánto gasta?", groups(CO,4,5), 20)])
+    muls([(5,7),(10,6),(5,9),(10,3),(5,4),(10,8)]) + [miss(10,6,60), prob("Cada bolsa de cromos cuesta 5€. Laura compra 4 bolsas. ¿Cuánto gasta?", groups(CO,4,5), 20)])
 day(18, "Restas con ceros", [sub(a,b) for a,b in [(300,148),(500,236),(400,127),(600,354),(200,86),(700,268)]], new=True)
-day(19, "La tabla del 6", muls([(6,2),(6,4),(6,3),(6,6),(6,5),(6,7),(6,8),(6,9)]), new=True)
+day(19, "La tabla del 6", muls([(6,2),(6,4),(6,3),(6,6),(6,5),(6,7),(6,8),(6,9)], vis=1), new=True)
 day(20, "Tablas 4, 5 y 6 + restas",
-    muls([(4,8),(6,7),(5,9),(6,4),(4,6),(6,9)]) + subs(3, lo_a=300, hi_a=999, lo_b=140, hi_b=899, borrows="any"))
+    muls([(4,8),(6,7),(5,9),(6,4),(4,6),(6,9)]) + [miss(6,7,42)] + subs(3, lo_a=300, hi_a=999, lo_b=140, hi_b=899, borrows="any"))
 day(21, "Día de problemas",
     [prob("Un tren llevaba 420 pasajeros y se bajaron 135. ¿Cuántos siguen en el tren?", bignum("420 − 135"), 285),
+     prob("Marco tiene 14 peces y Laura 9. ¿Cuántos peces más tiene Marco?", compare(FI,14,FI,9), 5),
      prob("Hay 6 platos y en cada uno hay 4 caramelos. ¿Cuántos caramelos hay?", groups(CA,6,4), 24)])
 day(22, "El truco del 7, 8 y 9", muls([(7,2),(8,3),(9,2),(7,5),(8,5),(9,4),(7,3),(8,2)]), new=True)
 day(23, "Practico el 7 y restas",
-    muls([(7,2),(7,3),(7,5),(7,4),(7,6),(7,7)]) + subs(2, lo_a=300, hi_a=999, lo_b=120, hi_b=799, borrows="any"))
+    muls([(7,2),(7,3),(7,5),(7,4),(7,6),(7,7)]) + [miss(7,6,42)] + subs(2, lo_a=300, hi_a=999, lo_b=120, hi_b=799, borrows="any"))
 day(24, "Problemas de dos pasos",
-    [steps("Laura tiene 50€. Compra 4 libros de 10€ cada uno. ¿Cuánto dinero le queda?", groups(CO,4,1),
-           [{"label":"Paso 1: 4 × 10 =", "ans":40},{"label":"Paso 2: 50 − 40 =", "ans":10}])], new=True)
-day(25, "Reto: la tabla loca", muls([(3,8),(6,5),(4,7),(10,7),(5,6),(2,9),(6,8),(4,9),(7,3),(5,7),(3,9),(6,6)]))
-day(26, "Reto de restas",
-    subs(3, lo_a=30, hi_a=99, lo_b=10, hi_b=89, borrows="any") + subs(3, lo_a=300, hi_a=999, lo_b=140, hi_b=899, borrows="any"))
-day(27, "Problemas con dibujos",
+    [steps("Laura tiene 50€. Compra 4 libros de 10€ cada uno. ¿Cuánto dinero le queda?", groups("📚",4,1),
+           [{"label":"Paso 1: 4 × 10 =", "ans":40},{"label":"Paso 2: 50 − 40 =", "ans":10}]),
+     steps("Hay 3 jaulas con 6 pájaros cada una y se escapan 5. ¿Cuántos pájaros quedan?", groups("🐦",3,6),
+           [{"label":"Paso 1: 3 × 6 =", "ans":18},{"label":"Paso 2: 18 − 5 =", "ans":13}]),
+     steps("Marta compra 2 bolsas con 8 caramelos cada una y regala 4. ¿Cuántos caramelos le quedan?", groups(CA,2,8),
+           [{"label":"Paso 1: 2 × 8 =", "ans":16},{"label":"Paso 2: 16 − 4 =", "ans":12}])], new=True)
+day(25, "La tabla del 8", muls([(8,2),(8,3),(8,4),(8,5),(8,6),(8,7),(8,8),(8,9)], vis=1), new=True)
+day(26, "La tabla del 9", muls([(9,2),(9,3),(9,4),(9,5),(9,6),(9,7),(9,8),(9,9)], vis=1), new=True)
+day(27, "Problemas y restas",
     [prob("En la pecera había 15 peces y se llevaron 6. ¿Cuántos quedan?", row(FI,15,6), 9),
-     prob("Hay 3 cajas con 6 galletas cada una. ¿Cuántas galletas hay?", groups(CK,3,6), 18)])
+     prob("Laura tiene 12 fresas y su primo 7. ¿Cuántas fresas más tiene Laura?", compare("🍓",12,"🍓",7), 5),
+     steps("Un florista tiene 4 ramos con 5 flores cada uno y vende 6 flores. ¿Cuántas flores le quedan?", groups(FL,4,5),
+           [{"label":"Paso 1: 4 × 5 =", "ans":20},{"label":"Paso 2: 20 − 6 =", "ans":14}]),
+     prob("Hay 3 cajas con 6 galletas cada una. ¿Cuántas galletas hay?", groups(CK,3,6), 18)]
+    + subs(2, lo_a=300, hi_a=999, lo_b=140, hi_b=899, borrows="any"))
 day(28, "Multiplicar por 1 y por 0",
     muls([(8,1),(6,0),(4,1),(9,0),(1,7),(0,5),(10,1),(3,0)]) + [miss(5,4,20),miss(3,3,9),miss(4,5,20),miss(2,6,12)], new=True)
 day(29, "Gran repaso final",
-    subs(4, lo_a=200, hi_a=999, lo_b=120, hi_b=899, borrows="any") + muls([(4,8),(7,3),(6,6),(5,9),(3,7),(8,2)])
+    subs(4, lo_a=200, hi_a=999, lo_b=120, hi_b=899, borrows="any") + muls([(7,8),(8,8),(9,9),(6,7),(9,6),(8,4)])
     + [prob("Un cine tiene 200 asientos y 146 están ocupados. ¿Cuántos quedan libres?", bignum("200 − 146"), 54)], repaso=True)
 day(30, "¡Lo has conseguido!",
-    subs(2, lo_a=300, hi_a=999, lo_b=140, hi_b=899, borrows="any") + muls([(6,7),(8,4),(5,8),(7,6)]), diploma=True)
+    subs(2, lo_a=300, hi_a=999, lo_b=140, hi_b=899, borrows="any") + muls([(8,9),(7,9),(9,9),(7,8)]), diploma=True)
 
 DATA = {"name": NAME, "days": DAYS}
 data_json = json.dumps(DATA, ensure_ascii=False)
@@ -379,6 +401,85 @@ button{font-family:inherit; cursor:pointer; border:none;}
 .iBtn.on{background:var(--ok); color:#fff;}
 .iBtn[disabled]{opacity:.55;}
 .iLock{font-size:11px; color:var(--muted); margin-top:3px;}
+.tab{min-height:44px;} .iBtn{min-height:40px;}
+.catBig .bigCat.tryOn{animation:tryOn .7s;}
+@keyframes tryOn{0%{transform:rotate(0)}30%{transform:rotate(-8deg) scale(1.06)}60%{transform:rotate(8deg) scale(1.06)}100%{transform:rotate(0)}}
+
+/* ---------- LLEVADA Y GUÍA EN RESTAS ---------- */
+.crow{margin-bottom:2px;}
+.cbox{width:22px; height:26px; margin:0 auto; border:2px dashed #cdb6ff; border-radius:8px; font-size:16px;
+  font-weight:800; color:#7b5cff; display:flex; align-items:center; justify-content:center; opacity:0;}
+.cbox.on{opacity:1; background:#f4edff; animation:carryPop .45s;}
+@keyframes carryPop{0%{transform:scale(0)}70%{transform:scale(1.35)}100%{transform:scale(1)}}
+.dlab{font-size:14px !important;}
+.dlab-U{color:#1fa564 !important}.dlab-D{color:#2b7fd0 !important}.dlab-C{color:#8b5cf6 !important}
+.dbox.active{animation:boxPulse 1.6s ease-in-out infinite;}
+@keyframes boxPulse{50%{box-shadow:0 0 0 8px rgba(123,92,255,.10)}}
+.dbox.ok,.slot.ok{animation:popOk .45s cubic-bezier(.5,1.8,.5,1);}
+@keyframes popOk{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.spk{position:fixed; font-size:20px; pointer-events:none; z-index:70; animation:sparkUp .7s ease-out forwards;}
+@keyframes sparkUp{to{transform:translateY(-46px) scale(1.4); opacity:0}}
+.dot.done{background:transparent; font-size:12px; line-height:13px; width:14px; height:14px;}
+
+/* ---------- PROBLEMAS DE COMPARACIÓN ---------- */
+.cmpwrap{display:inline-block; background:#f7fbff; border-radius:14px; padding:8px 10px;}
+.cmprow{display:flex; gap:2px; justify-content:flex-start; margin:3px 0;}
+.cmprow .cmp{width:24px; font-size:20px; text-align:center;}
+
+/* ---------- GATO VIVO ---------- */
+.cat .tail{transform-box:fill-box; transform-origin:0% 100%; animation:tailWag 3.2s ease-in-out infinite;}
+@keyframes tailWag{50%{transform:rotate(10deg)}}
+.cat .blink{transform-box:fill-box; transform-origin:center; animation:catBlink 4.5s infinite;}
+@keyframes catBlink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.06)}}
+.cat .bodyE{transform-box:fill-box; transform-origin:center bottom; animation:breathe 3s ease-in-out infinite;}
+@keyframes breathe{50%{transform:scale(1.02,.985)}}
+.cat .gstars{animation:twinkle 2.2s ease-in-out infinite;}
+@keyframes twinkle{50%{opacity:.35}}
+.qcatWrap{position:absolute; top:6px; left:8px; width:56px; pointer-events:none; z-index:2;}
+.qcatWrap.jump{animation:catJump .6s cubic-bezier(.5,1.6,.5,1);}
+@keyframes catJump{0%{transform:translateY(0)}40%{transform:translateY(-14px)}70%{transform:translateY(0)}85%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+
+/* ---------- CELEBRACIÓN FIN DE DÍA ---------- */
+.done-card{animation:cardIn .5s cubic-bezier(.4,1.6,.5,1);}
+@keyframes cardIn{0%{transform:scale(.5); opacity:0}100%{transform:scale(1); opacity:1}}
+.starWrap{position:relative; height:96px; display:flex; align-items:center; justify-content:center; overflow:visible;}
+.starburst{position:absolute; width:180px; height:180px; border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,214,74,.30) 0 12deg, transparent 12deg 30deg);
+  animation:spinSlow 8s linear infinite;}
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+.bigstars{position:relative;}
+.bigstars .bstar{display:inline-block; animation:starPop .6s cubic-bezier(.5,1.8,.5,1) both;
+  animation-delay:calc(var(--i)*.35s);}
+@keyframes starPop{0%{transform:scale(0) rotate(-180deg)}100%{transform:scale(1) rotate(0)}}
+.danceCat{width:110px; margin:4px auto; animation:dance 1s ease-in-out infinite;}
+@keyframes dance{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.giftBox{background:#fff2f8; border:2px dashed #ff8ac2; border-radius:16px; padding:10px; margin:10px 0; font-size:15px; font-weight:700;}
+.medalRow{background:#fffbe8; border-radius:16px; padding:8px 10px; margin:8px 0; font-size:15px; font-weight:800; color:#8a5a00;}
+.catSays{display:flex; align-items:center; gap:8px; background:#f2fbff; border:2px solid #bfe7ff; border-radius:16px;
+  padding:8px 12px; margin:10px 0; text-align:left; font-size:15px; animation:fadeIn .8s both;}
+.catSays .mini{width:44px; min-width:44px;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ---------- MEDALLAS Y RACHA ---------- */
+.medalShelf{display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin:0 0 12px;}
+.medal{background:rgba(255,255,255,.92); border-radius:12px; padding:5px 7px; font-size:20px; box-shadow:var(--shadow);}
+.medal.locked{filter:grayscale(1); opacity:.4;}
+
+/* ---------- IA: RETO Y ZONA DE FAMILIA ---------- */
+.retoBtn{display:block; margin:0 auto 14px; background:linear-gradient(160deg,#2a2350,#4a3f8f); color:#fff;
+  font-size:16px; font-weight:800; padding:12px 22px; border-radius:16px; box-shadow:var(--shadow);}
+.aiPista{border-bottom:1px dashed #e0c684; padding-bottom:6px; margin-bottom:6px;}
+.famCard{background:var(--card); border-radius:22px; padding:18px; box-shadow:var(--shadow); font-size:15px;}
+.famCard h3{margin:14px 0 6px; color:var(--bg1); font-size:16px;}
+.famRow{display:flex; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap;}
+.famRow input[type=password],.famRow input[type=text]{flex:1; min-width:160px; padding:10px; border:2px solid #d7d2ee; border-radius:10px; font-size:14px; font-family:inherit;}
+.famRow input[type=number]{width:74px; padding:8px; border:2px solid #d7d2ee; border-radius:10px; font-size:15px; font-family:inherit;}
+.famBtn{background:#efeaff; color:var(--bg1); font-weight:800; border-radius:10px; padding:10px 14px;}
+.famNote{background:#fff6da; border-radius:10px; padding:8px 10px; font-size:12.5px; color:#7a5a10; line-height:1.45; margin:8px 0;}
+.famErr{background:#ffecec; color:#b33; border-radius:10px; padding:8px 10px; font-size:13px; font-weight:700; margin:8px 0;}
+.aiLoad{position:fixed; inset:0; background:rgba(42,35,80,.88); z-index:80; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; color:#fff; font-size:17px; font-weight:800; text-align:center; padding:20px;}
+.aiLoad .thinkCat{width:120px; animation:dance 1.2s ease-in-out infinite;}
 </style>
 </head>
 <body>
@@ -391,10 +492,14 @@ button{font-family:inherit; cursor:pointer; border:none;}
     <div class="stats">
       <div class="stat"><b id="st-days">0</b><span>días hechos</span></div>
       <div class="stat"><b id="st-total">0</b><span>⭐ ganadas</span></div>
+      <div class="stat hidden" id="st-streak-box"><b id="st-streak">0</b><span>🔥 seguidos</span></div>
     </div>
+    <div class="medalShelf" id="medalShelf"></div>
+    <button class="retoBtn hidden" id="retoBtn">🐾 Reto del gato</button>
     <div class="grid" id="grid"></div>
     <div class="homefoot">Elige un día y toca para empezar. ¡Gana estrellas y viste a tu gato! 🐱⭐<br>
       <button class="reset" id="resetBtn">Borrar mi progreso</button>
+      <button class="reset" id="famBtn">👨‍👩‍👧 Familia</button>
     </div>
   </div>
 
@@ -427,10 +532,11 @@ button{font-family:inherit; cursor:pointer; border:none;}
 
   <!-- QUESTION -->
   <div id="quizView" class="hidden">
-    <div class="topbar"><button class="back" id="q-back">← Mapa</button><div class="topttl" id="q-ttl"></div></div>
+    <div class="topbar"><button class="back" id="q-back">← Mapa</button><div class="topttl" id="q-ttl"></div><button class="back" id="muteBtn">🔊</button></div>
     <div class="dots" id="q-dots"></div>
     <div class="qwrap">
       <div class="qcard">
+        <div class="qcatWrap" id="q-cat"></div>
         <button class="hintbtn hidden" id="q-hintbtn">💡 Pista</button>
         <div class="qkind" id="q-kind"></div>
         <div id="q-body"></div>
@@ -446,6 +552,12 @@ button{font-family:inherit; cursor:pointer; border:none;}
   <div id="doneView" class="hidden">
     <div class="done-card" id="done-card"></div>
   </div>
+
+  <!-- FAMILIA -->
+  <div id="familyView" class="hidden">
+    <div class="topbar"><button class="back" id="f-back">← Mapa</button><div class="topttl">👨‍👩‍👧 Zona de familia</div></div>
+    <div class="famCard" id="famCard"></div>
+  </div>
 </div>
 
 <script>
@@ -456,9 +568,23 @@ const TRYAG = ["Casi… ¡prueba otra vez! 💛","Uy, inténtalo de nuevo 🙂",
 
 // ================= GATO (SVG) + CATÁLOGO DE LA TIENDA =================
 __CATJS__
+// ================= TUTOR IA OPCIONAL (Claude Haiku) =================
+__AIJS__
+// ================= SONIDOS (Web Audio, sin ficheros) =================
+let AC=null;
+function sfxInit(){ try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC&&AC.state==="suspended") AC.resume(); }catch(e){} }
+document.addEventListener("pointerdown",sfxInit);
+function tone(f,t0,dur,type,vol){ if(!AC||progress.mute) return; try{
+  const o=AC.createOscillator(),g=AC.createGain(); o.type=type||"sine"; o.frequency.value=f;
+  const t=AC.currentTime+(t0||0); g.gain.setValueAtTime(vol||.18,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+dur+.05); }catch(e){} }
+function sfxOk(){ tone(523,0,.12); tone(784,.1,.15); }
+function sfxNo(){ tone(220,0,.18,"triangle",.12); }
+function sfxWin(){ [523,659,784,1046].forEach((f,i)=>tone(f,i*.12,.2)); }
+function sfxCoin(){ tone(988,0,.08); tone(1319,.07,.18); }
 const EYE_LIST=[{id:"verde",c:"#3ad07a",n:"Verde"},{id:"ambar",c:"#ffb02e",n:"Ámbar"},{id:"azul",c:"#4bb8ff",n:"Azul"},{id:"rosa",c:"#ff77c8",n:"Rosa"},{id:"lila",c:"#b98cff",n:"Lila"}];
-const SKINS=[{id:"clasico",name:"Clásico",cost:0},{id:"esmoquin",name:"Esmoquin",cost:10},{id:"corazon",name:"Corazón",cost:12},{id:"rayado",name:"Rayitas",cost:12},{id:"vaca",name:"Manchitas",cost:15},{id:"galaxia",name:"Galaxia",cost:20}];
-const SKIN_EMOJI={clasico:"🐱",esmoquin:"🤵",corazon:"💗",rayado:"🐯",vaca:"🐄",galaxia:"🌌"};
+const SKINS=[{id:"clasico",name:"Clásico",cost:0},{id:"esmoquin",name:"Esmoquin",cost:10},{id:"corazon",name:"Corazón",cost:12},{id:"rayado",name:"Rayitas",cost:12},{id:"calcetines",name:"Calcetines",cost:12},{id:"vaca",name:"Manchitas",cost:15},{id:"dorado",name:"Motas de oro",cost:16},{id:"sirena",name:"Sirenita",cost:18},{id:"galaxia",name:"Galaxia",cost:20},{id:"solverano",name:"Sol de verano",cost:null,prize:"Premio del día 15"},{id:"arcoiris",name:"Arcoíris",cost:null,prize:"Premio del día 30"}];
+const SKIN_EMOJI={clasico:"🐱",esmoquin:"🤵",corazon:"💗",rayado:"🐯",vaca:"🐄",calcetines:"🧦",dorado:"✨",sirena:"🧜‍♀️",galaxia:"🌌",solverano:"🌞",arcoiris:"🌈"};
 const ITEMS=[
  {id:"lazo",slot:"head",name:"Lazo",emoji:"🎀",cost:5},
  {id:"fiesta",slot:"head",name:"Gorro fiesta",emoji:"🎉",cost:4},
@@ -472,19 +598,56 @@ const ITEMS=[
  {id:"cascabel",slot:"neck",name:"Cascabel",emoji:"🔔",cost:5},
  {id:"pajarita",slot:"neck",name:"Pajarita",emoji:"🎗️",cost:6},
  {id:"bandana",slot:"neck",name:"Bandana",emoji:"💠",cost:7},
- {id:"bufanda",slot:"neck",name:"Bufanda",emoji:"🧣",cost:9}
+ {id:"bufanda",slot:"neck",name:"Bufanda",emoji:"🧣",cost:9},
+ {id:"mochila",slot:"back",name:"Mochila",emoji:"🎒",cost:10},
+ {id:"capa",slot:"back",name:"Capa de héroe",emoji:"🦸",cost:12},
+ {id:"alitas",slot:"back",name:"Alitas",emoji:"🦋",cost:14}
 ];
+const MEDALS=[
+ {id:"m1",emoji:"🌟",name:"Primera estrella"},
+ {id:"m5d",emoji:"🎒",name:"5 días de mates"},
+ {id:"m15",emoji:"🌞",name:"Mitad del verano"},
+ {id:"mperf",emoji:"💯",name:"Un día perfecto"},
+ {id:"m3perf",emoji:"🥇",name:"3 días perfectos"},
+ {id:"mtab",emoji:"✖️",name:"Reina de las tablas"},
+ {id:"m50",emoji:"⭐",name:"50 estrellas"},
+ {id:"mr3",emoji:"🔥",name:"Racha de 3 días"},
+ {id:"mr7",emoji:"🧨",name:"Racha de 7 días"},
+ {id:"mfin",emoji:"🏆",name:"¡Verano completo!"}
+];
+function daysDone(){ return DATA.days.filter(d=>progress[d.n]!=null).length; }
+function medalCond(id){
+  const p=progress;
+  if(id==="m1") return totalStars()>=1;
+  if(id==="m5d") return daysDone()>=5;
+  if(id==="m15") return p[15]!=null;
+  if(id==="mperf") return DATA.days.some(d=>p[d.n]===3);
+  if(id==="m3perf") return DATA.days.filter(d=>p[d.n]===3).length>=3;
+  if(id==="mtab") return [4,5,10,12,16,19,25,26].every(n=>p[n]!=null);
+  if(id==="m50") return totalStars()>=50;
+  if(id==="mr3") return (p.streak||0)>=3;
+  if(id==="mr7") return (p.streak||0)>=7;
+  if(id==="mfin") return daysDone()>=30;
+  return false;
+}
+function checkMedals(){
+  const nue=[];
+  MEDALS.forEach(m=>{ if(progress.medals.indexOf(m.id)<0 && medalCond(m.id)){ progress.medals.push(m.id); nue.push(m); } });
+  return nue;
+}
 function avInit(){
-  if(!progress.av) progress.av={created:false,name:NAME,eye:"verde",skin:"clasico",head:null,eyes:null,neck:null,owned:["clasico"]};
+  if(!progress.av) progress.av={created:false,name:NAME,eye:"verde",skin:"clasico",head:null,eyes:null,neck:null,back:null,owned:["clasico"]};
   const a=progress.av;
   if(!a.owned) a.owned=["clasico"];
   if(a.owned.indexOf("clasico")<0) a.owned.push("clasico");
   if(!a.skin) a.skin="clasico";
   if(!a.eye) a.eye="verde";
   if(!a.name) a.name=NAME;
+  if(!progress.medals) progress.medals=[];
+  if(!progress.stats) progress.stats={};
 }
-function avState(){ const a=progress.av; return {skin:a.skin,eye:a.eye,head:a.head,eyes:a.eyes,neck:a.neck}; }
-function totalStars(){ let s=0; DATA.days.forEach(d=>{ if(progress[d.n]!=null) s+=progress[d.n]; }); return s; }
+function avState(){ const a=progress.av; return {skin:a.skin,eye:a.eye,head:a.head,eyes:a.eyes,neck:a.neck,back:a.back}; }
+function totalStars(){ let s=0; DATA.days.forEach(d=>{ if(progress[d.n]!=null) s+=progress[d.n]; }); return s+(progress.extra||0)+(progress.bonus||0); }
 function wallet(){ return totalStars()-(progress.spent||0); }
 function owns(id){ return progress.av.owned.indexOf(id)>=0; }
 
@@ -492,7 +655,7 @@ function owns(id){ return progress.av.owned.indexOf(id)>=0; }
 let progress = {};
 function load(){ try{ progress = JSON.parse(localStorage.getItem("laura_mates")||"{}"); }catch(e){ progress={}; } }
 function save(){ try{ localStorage.setItem("laura_mates", JSON.stringify(progress)); }catch(e){} }
-load(); avInit();
+load(); avInit(); famLoad();
 
 // ---- helpers de respuesta ----
 function answerOf(q){
@@ -518,6 +681,11 @@ function illusHTML(il){
     for(let g=0;g<il.g;g++){ s+='<div class="gbox">'+il.e.repeat(il.per)+'</div>'; }
     return s+'</div>';
   }
+  if(il.mode==="compare"){
+    const fila=(e,n,m)=>{ let s='<div class="cmprow">'; for(let i=0;i<m;i++){ s+='<span class="cmp">'+(i<n?e:"")+'</span>'; } return s+'</div>'; };
+    const m=Math.max(il.n1,il.n2);
+    return '<div class="cmpwrap">'+fila(il.e1,il.n1,m)+fila(il.e2,il.n2,m)+'</div>';
+  }
   return "";
 }
 
@@ -528,16 +696,25 @@ function bodyHTML(q){
     const pa=(''+q.a).padStart(w,' '), pb=(''+q.b).padStart(w,' ');
     const c=s=>[...s].map(ch=>'<span class="vc">'+(ch===' '?'':ch)+'</span>').join('');
     const labs = w===3?["C","D","U"]:(w===2?["D","U"]:["U"]);
-    let boxes='', labels='';
+    let boxes='', labels='', cboxes='';
     for(let i=0;i<w;i++){ boxes+='<span class="acell"><span class="dbox" data-i="'+i+'"></span></span>';
-      labels+='<span class="acell"><span class="dlab">'+labs[i]+'</span></span>'; }
-    return '<div class="vsub"><div class="vrow">'+c(pa)+'</div>'+
+      labels+='<span class="acell"><span class="dlab dlab-'+labs[i]+'">'+labs[i]+'</span></span>';
+      cboxes+='<span class="acell"><span class="cbox" data-c="'+i+'"></span></span>'; }
+    return '<div class="vsub"><div class="vrow crow">'+cboxes+'</div>'+
+           '<div class="vrow">'+c(pa)+'</div>'+
            '<div class="vrow"><span class="vop">−</span>'+c(pb)+'</div>'+
            '<div class="vbar"></div>'+
            '<div class="vrow arow2">'+boxes+'</div>'+
            '<div class="vrow labrow">'+labels+'</div></div>';
   }
-  if(q.t==="mul") return '<div class="mline">'+q.x+' × '+q.y+' =</div>';
+  if(q.t==="mul"){
+    let h='<div class="mline">'+q.x+' × '+q.y+' =</div>';
+    if(q.vis && q.x>0 && q.y>0){
+      const g=Math.min(q.x,q.y), per=Math.max(q.x,q.y);
+      h+='<div class="illus">'+illusHTML({mode:"groups",e:"🔵",g:g,per:per})+'</div>';
+    }
+    return h;
+  }
   if(q.t==="miss") return '<div class="mline">'+q.a+' × ? = '+q.r+'</div>';
   if(q.t==="prob"||q.t==="steps") return '<div class="qtext">'+q.text+'</div><div class="illus">'+illusHTML(q.illus)+'</div>';
   return "";
@@ -550,21 +727,65 @@ function kindLabel(q){
 let curDay=null, qi=0, slots=[], activeSlot=0, tries=0, firstTryCorrect=0, revealed=false;
 let mode="single", dCells=[], dInfo=[], dAns=0, dW=1, dActive=0, qClean=true;
 
-function show(id){ ["home","createView","shopView","introView","quizView","doneView"].forEach(v=>document.getElementById(v).classList.toggle("hidden",v!==id)); window.scrollTo(0,0); }
+function show(id){ ["home","createView","shopView","introView","quizView","doneView","familyView"].forEach(v=>document.getElementById(v).classList.toggle("hidden",v!==id)); window.scrollTo(0,0); }
+function dayNum(){ return (curDay && typeof curDay.n==="number") ? curDay.n : 0; }
+function dayTitle(){ return curDay.review ? "Mi repaso 🔁" : (curDay.n==="IA" ? "Reto del gato 🐾" : "Día "+curDay.n); }
+function sparkAt(el){
+  try{ const r=el.getBoundingClientRect(); const s=document.createElement("div"); s.className="spk"; s.textContent="✨";
+    s.style.left=(r.left+r.width/2-10)+"px"; s.style.top=(r.top-6)+"px";
+    document.body.appendChild(s); setTimeout(()=>s.remove(),750); }catch(e){}
+}
+function catMood(m){
+  const el=document.getElementById("q-cat"); if(!el) return;
+  el.innerHTML=catSVG(Object.assign(avState(),{mood:m||""}));
+  if(m==="feliz"){ el.classList.remove("jump"); void el.offsetWidth; el.classList.add("jump"); }
+  clearTimeout(catMood._t);
+  if(m) catMood._t=setTimeout(()=>{ const e2=document.getElementById("q-cat");
+    if(e2 && !document.getElementById("quizView").classList.contains("hidden")) e2.innerHTML=catSVG(avState()); },1600);
+}
+function statAdd(ok){
+  try{
+    progress.stats=progress.stats||{};
+    const q=curDay.qs[qi]; let k;
+    if(q.t==="sub") k=(Math.max((''+q.a).length,(''+q.b).length)>=3)?"resta3":"resta2";
+    else if(q.t==="mul") k="tabla_"+Math.max(q.x,q.y);
+    else if(q.t==="miss") k="tabla_"+q.a;
+    else k="problema";
+    const s=progress.stats[k]=progress.stats[k]||{ok:0,mal:0};
+    ok?s.ok++:s.mal++;
+  }catch(e){}
+}
 
 // ---- HOME ----
 function renderHome(){
-  let days=0;
-  DATA.days.forEach(d=>{ if(progress[d.n]!=null) days++; });
+  const days=daysDone();
   document.getElementById("st-days").textContent=days;
   document.getElementById("st-total").textContent=totalStars();
+  const stb=document.getElementById("st-streak-box");
+  if((progress.streak||0)>=2){ stb.classList.remove("hidden"); document.getElementById("st-streak").textContent=progress.streak; }
+  else stb.classList.add("hidden");
+  // hero con mensaje según estado
+  let cheapest=null;
+  SKINS.concat(ITEMS).forEach(it=>{ if(it.cost && !owns(it.id) && (cheapest==null||it.cost<cheapest)) cheapest=it.cost; });
+  let sub="Este es tu gato negro";
+  if(cheapest!=null && wallet()>=cheapest) sub="¡Tienes ⭐ para estrenar algo en la tienda!";
+  else if(days>0 && days%5===4) sub="🎁 ¡Un día más y el gato te trae un regalo!";
+  else sub=["Este es tu gato negro","Hoy es un gran día para las mates ✨","Tu gato cree en ti 🐾","¡A por las estrellas! ⭐"][new Date().getDate()%4];
   document.getElementById("hero").innerHTML=
     '<div class="heroCat">'+catSVG(avState())+'</div>'+
     '<div class="hInfo"><div class="hHi">¡Hola, '+progress.av.name+'! 👋</div>'+
-    '<div class="hSub">Este es tu gato negro</div>'+
+    '<div class="hSub">'+sub+'</div>'+
     '<span class="wallet">⭐ '+wallet()+' para gastar</span></div>'+
     '<button class="tiendaBtn" id="goShop">🛍️<br>Tienda</button>';
   document.getElementById("goShop").onclick=openShop;
+  // medallas
+  const shelf=document.getElementById("medalShelf"); shelf.innerHTML="";
+  MEDALS.forEach(m=>{ const got=(progress.medals||[]).indexOf(m.id)>=0;
+    const el=document.createElement("div"); el.className="medal"+(got?"":" locked");
+    el.textContent=m.emoji; el.title=m.name; shelf.appendChild(el); });
+  // reto del gato (solo si la familia activó la IA)
+  const rb=document.getElementById("retoBtn");
+  rb.classList.toggle("hidden", !(typeof aiOn==="function" && aiOn()));
   const nextDay = (DATA.days.find(d=>progress[d.n]==null)||{}).n;
   const g=document.getElementById("grid"); g.innerHTML="";
   DATA.days.forEach(d=>{
@@ -577,11 +798,19 @@ function renderHome(){
     el.onclick=()=>openDay(d.n);
     g.appendChild(el);
   });
+  if((progress.errs||[]).length>0){
+    const el=document.createElement("button");
+    el.className="daycard next";
+    el.innerHTML='<div class="dn">🔁</div><div class="dl">Mi repaso</div><div class="st">'+progress.errs.length+' pendientes</div>';
+    el.onclick=openReview;
+    g.appendChild(el);
+  }
   show("home");
 }
 
 function openDay(n){
-  curDay=DATA.days.find(d=>d.n===n); qi=0; firstTryCorrect=0;
+  const d=DATA.days.find(x=>x.n===n);
+  curDay=Object.assign({},d,{qs:d.qs.map(q=>Object.assign({},q))}); qi=0; firstTryCorrect=0;
   if(curDay.intro){
     document.getElementById("i-ttl").textContent="Día "+n;
     document.getElementById("i-h2").textContent=curDay.intro.title;
@@ -590,25 +819,36 @@ function openDay(n){
   } else { startQuiz(); }
 }
 
-function startQuiz(){ qi=0; show("quizView"); renderQ(); }
+function openReview(){
+  const qs=(progress.errs||[]).slice(0,6).map(q=>Object.assign({},q));
+  if(!qs.length) return;
+  curDay={n:0,theme:"Mi repaso 🔁",review:true,qs:qs}; qi=0; firstTryCorrect=0;
+  startQuiz();
+}
+
+function startQuiz(){ qi=0; show("quizView"); document.getElementById("muteBtn").textContent=progress.mute?"🔇":"🔊"; renderQ(); }
 
 function renderDots(){
   const d=document.getElementById("q-dots"); d.innerHTML="";
   curDay.qs.forEach((_,i)=>{ const s=document.createElement("div");
-    s.className="dot"+(i<qi?" done":"")+(i===qi?" cur":""); d.appendChild(s); });
+    s.className="dot"+(i<qi?" done":"")+(i===qi?" cur":"");
+    if(i<qi) s.textContent="🐾";
+    d.appendChild(s); });
 }
 
+let hintTaps=0;
 function renderQ(){
-  const q=curDay.qs[qi]; tries=0; revealed=false;
-  document.getElementById("q-ttl").textContent="Día "+curDay.n+" · "+(qi+1)+"/"+curDay.qs.length;
-  document.getElementById("q-kind").textContent=kindLabel(q);
+  const q=curDay.qs[qi]; tries=0; revealed=false; hintTaps=0; qClean=true;
+  document.getElementById("q-ttl").textContent=dayTitle()+" · "+(qi+1)+"/"+curDay.qs.length;
+  document.getElementById("q-kind").textContent=kindLabel(q)+(q.rep?" · ¡otra vez! 🔁":"");
   document.getElementById("q-body").innerHTML=bodyHTML(q);
   document.getElementById("q-fb").textContent=""; document.getElementById("q-fb").className="fb"; hideHint();
+  const qc=document.getElementById("q-cat"); if(qc) qc.innerHTML=catSVG(avState());
   // entrada
-  slots=[]; activeSlot=0; dboxes=[]; dActive=0; mode="single";
+  slots=[]; activeSlot=0; dActive=0; mode="single";
   const sc=document.getElementById("q-slots"); sc.innerHTML="";
   if(q.t==="sub"){
-    mode="columns"; qClean=true;
+    mode="columns";
     const W=Math.max((''+q.a).length,(''+q.b).length); dW=W; dAns=q.a-q.b;
     const A=(''+q.a).padStart(W,'0').split('').map(Number);
     const B=(''+q.b).padStart(W,'0').split('').map(Number);
@@ -618,23 +858,24 @@ function renderQ(){
       dInfo[i]={ai:A[i],bi:B[i],top:top,res:res,bin:bin,bout:bout}; }
     const names=W===3?["centenas","decenas","unidades"]:(W===2?["decenas","unidades"]:["unidades"]);
     dCells=[];
-    document.querySelectorAll('#q-body .dbox').forEach((el,i)=>{ dCells.push({val:"",res:dInfo[i].res,locked:false,wrong:0,el:el,name:names[i]}); });
+    document.querySelectorAll('#q-body .dbox').forEach((el,i)=>{ dCells.push({val:"",res:dInfo[i].res,locked:false,wrong:0,bads:[],el:el,name:names[i]}); });
     dActive=W-1; drawCols();
+    const fb=document.getElementById("q-fb"); fb.className="fb ok"; fb.textContent="Empieza por las unidades 👉";
   } else if(q.t==="steps"){
     mode="steps";
     q.parts.forEach((p,i)=>{
       const lab=document.createElement("div"); lab.className="slotlab"; lab.textContent=p.label; sc.appendChild(lab);
       const s=document.createElement("div"); s.className="slot"+(i===0?" active":""); s.dataset.i=i; s.onclick=()=>selSlot(i);
-      sc.appendChild(s); slots.push({val:"",ans:p.ans,done:false,el:s});
+      sc.appendChild(s); slots.push({val:"",ans:p.ans,done:false,el:s,tr:0,bads:[]});
     });
     drawSlots();
   } else {
     mode="single";
     const s=document.createElement("div"); s.className="slot active"; s.onclick=()=>selSlot(0);
-    sc.appendChild(s); slots.push({val:"",ans:answerOf(q),done:false,el:s});
+    sc.appendChild(s); slots.push({val:"",ans:answerOf(q),done:false,el:s,tr:0,bads:[]});
     drawSlots();
   }
-  document.getElementById("q-hintbtn").classList.toggle("hidden", mode==="columns");
+  document.getElementById("q-hintbtn").classList.remove("hidden");
   renderDots(); buildPad();
 }
 
@@ -655,7 +896,7 @@ function buildPad(){
     const b=document.createElement("button");
     if(k==="⌫"){ b.className="key del"; b.textContent="⌫"; b.onclick=delDigit; }
     else if(k==="✓"){
-      if(mode==="columns"){ b.className="key"; b.style.background="linear-gradient(160deg,#ffd54a,#ff9d2e)"; b.style.color="#5a3b00"; b.textContent="💡"; b.onclick=()=>showHint(colExplain(dActive)); }
+      if(mode==="columns"){ b.className="key"; b.style.opacity=".3"; b.textContent="✓"; b.disabled=true; }
       else { b.className="key"; b.style.background="linear-gradient(160deg,var(--ok),var(--okd))"; b.style.color="#fff"; b.textContent="✓"; b.onclick=check; }
     }
     else { b.className="key"; b.textContent=k; b.onclick=()=>typeDigit(k); }
@@ -681,131 +922,244 @@ function drawCols(){
 function colType(k){
   const c=dCells[dActive]; const fb=document.getElementById("q-fb");
   if(parseInt(k,10)===c.res){
-    c.val=k; c.locked=true;
+    c.val=k; c.locked=true; sfxOk(); catMood("feliz"); sparkAt(c.el);
+    if(dInfo[dActive].bout===1 && dActive>0){
+      const cb=document.querySelector('#q-body .cbox[data-c="'+(dActive-1)+'"]');
+      if(cb){ cb.textContent="1"; cb.classList.add("on"); }
+    }
     if(dActive>0){
       dActive--; hideHint(); drawCols();
-      fb.className="fb ok"; fb.textContent="¡Muy bien! Ahora las "+dCells[dActive].name+" 👇";
+      fb.className="fb ok"; fb.textContent="¡Muy bien! Ahora las "+dCells[dActive].name+" ⬅️";
     } else {
-      drawCols();
-      if(qClean && !revealed) firstTryCorrect++;
-      fb.className="fb ok"; fb.textContent=PRAISE[Math.floor(qi+curDay.n)%PRAISE.length];
-      burst(); setTimeout(next,900);
+      drawCols(); statAdd(qClean);
+      if(qClean && !revealed && !curDay.qs[qi].rep) firstTryCorrect++;
+      fb.className="fb ok"; fb.textContent=PRAISE[(qi+dayNum())%PRAISE.length];
+      burst(); setTimeout(next,1300);
     }
   } else {
-    c.val=k; qClean=false; c.wrong++; drawCols();
-    c.el.classList.add("bad"); setTimeout(()=>{ if(!c.locked){ c.val=""; drawCols(); } },460);
+    c.val=k; qClean=false; c.wrong++; c.bads.push(k); drawCols(); sfxNo(); catMood("uy"); statAdd(false);
+    c.el.classList.add("bad"); setTimeout(()=>{ if(!c.locked){ c.val=""; drawCols(); } },600);
     fb.className="fb no"; fb.textContent=TRYAG[c.wrong%TRYAG.length];
-    if(c.wrong>=2){ revealed=true; showHint(colExplain(dActive)); }
+    if(c.wrong>=2){ revealed=true; showHint(colExplain(dActive)); if(c.wrong===2) aiHintCol(); }
   }
 }
 function colExplain(i){
   const info=dInfo[i]; const c=dCells[i];
   const cap=c.name.charAt(0).toUpperCase()+c.name.slice(1);
   if(info.bout){
-    const base = info.bin ? ("Como prestaste antes, arriba queda "+info.ai+"−1 = "+info.top+". ") : "";
-    return base+cap+": "+info.top+" − "+info.bi+" no se puede, así que pides prestado 1. "+info.top+" + 10 = "+(info.top+10)+", y "+(info.top+10)+" − "+info.bi+" = "+info.res+". ¡No olvides la llevada!";
+    if(info.bin && info.ai===0){
+      return cap+": arriba hay un 0 que ya prestó 1. El 0 no tiene, así que pide 10 al vecino y se queda en 9. 9 − "+info.bi+" = "+info.res+". ¡Y se apunta otra llevada!";
+    }
+    const base = info.bin ? ("Mira el 1 apuntado arriba: "+info.ai+" − 1 = "+info.top+". ") : "";
+    return base+cap+": "+info.top+" − "+info.bi+" no se puede, así que pides prestado 1. "+info.top+" + 10 = "+(info.top+10)+", y "+(info.top+10)+" − "+info.bi+" = "+info.res+". El 1 prestado se apunta arriba de la siguiente columna.";
   } else if(info.bin){
-    return cap+": como prestaste antes, arriba queda "+info.ai+"−1 = "+info.top+". "+info.top+" − "+info.bi+" = "+info.res+".";
+    return cap+": mira el 1 apuntado arriba. "+info.ai+" − 1 = "+info.top+", y "+info.top+" − "+info.bi+" = "+info.res+".";
   }
   return cap+": "+info.ai+" − "+info.bi+" = "+info.res+".";
 }
-function mulHint(x,y){
+function mulHint(x,y,deep){
   const res=x*y;
-  if(x===0||y===0) return "Cualquier número por 0 es 0. Por eso "+x+" × "+y+" = 0.";
-  if(x===1) return "El 1 no cambia el número: 1 × "+y+" = "+y+".";
-  if(y===1) return "El 1 no cambia el número: "+x+" × 1 = "+x+".";
+  if(x===0||y===0) return "Cualquier número por 0 es 0."+(deep?" Por eso "+x+" × "+y+" = 0.":" ¿Cuánto será entonces?");
+  if(x===1||y===1){ const o=x===1?y:x; return "El 1 no cambia el número."+(deep?" La respuesta es "+o+".":" ¿Qué número se queda igual?"); }
   const a=Math.max(x,y), bb=Math.min(x,y);
-  if(bb<=6){ const arr=[]; for(let i=0;i<bb;i++) arr.push(a); return x+" × "+y+" es sumar "+a+" un total de "+bb+" veces: "+arr.join(" + ")+" = "+res+"."; }
-  return x+" × "+y+": cuenta de "+a+" en "+a+", "+bb+" saltos. El resultado es "+res+".";
+  let h;
+  if(bb<=6){ const arr=[]; for(let i=0;i<bb;i++) arr.push(a); h=x+" × "+y+" es sumar "+arr.join(" + ")+"."; }
+  else h=x+" × "+y+": cuenta de "+a+" en "+a+" dando "+bb+" saltos.";
+  if(deep) h+=" El resultado es "+res+".";
+  if(bb<=6 && a<=10) h+='<div style="margin-top:6px">'+illusHTML({mode:"groups",e:"🔵",g:bb,per:a})+'</div>';
+  return h;
 }
-function missHint(a,r){
+function missHint(a,r,deep){
   const t=r/a; const arr=[]; for(let i=1;i<=t;i++) arr.push(a*i);
-  return a+" × ? = "+r+". Cuenta de "+a+" en "+a+": "+arr.join(", ")+". Das "+t+" saltos, así que el número que falta es "+t+".";
+  if(deep) return a+" × ? = "+r+". Cuenta de "+a+" en "+a+": "+arr.join(", ")+". Das "+t+" saltos, así que el número que falta es "+t+".";
+  return a+" × ? = "+r+". Cuenta de "+a+" en "+a+" con los dedos hasta llegar a "+r+". ¿Cuántos saltos das?";
 }
-function probHint(q){
+function probHint(q,deep){
   const il=q.illus||{};
-  if(il.mode==="row") return "Cuenta solo los dibujos que NO están tachados. Quedan "+q.ans+".";
-  if(il.mode==="groups") return "Hay "+il.g+" grupos de "+il.per+". Cuéntalos todos (o suma "+il.per+" “"+il.g+" veces”). En total son "+q.ans+".";
-  if(il.mode==="bignum") return "Colócalo en columnas y resta de derecha a izquierda (unidades, decenas, centenas). El resultado es "+q.ans+".";
-  return "Piensa qué operación necesitas y hazla con calma. El resultado es "+q.ans+".";
+  if(il.mode==="row") return deep ? "Cuenta solo los dibujos que NO están tachados. Quedan "+q.ans+"."
+    : "Cuenta con el dedo solo los dibujos que NO están tachados.";
+  if(il.mode==="groups") return deep ? "Hay "+il.g+" grupos de "+il.per+". En total son "+q.ans+"."
+    : "Hay "+il.g+" grupos de "+il.per+". Cuenta todos los dibujos, caja por caja.";
+  if(il.mode==="compare") return deep ? "Empareja cada dibujo de arriba con uno de abajo: quedan "+q.ans+" sin pareja."
+    : "Empareja cada dibujo de arriba con uno de abajo. Los que se queden sin pareja son la respuesta.";
+  if(il.mode==="bignum") return deep ? "Colócalo en columnas y resta de derecha a izquierda. El resultado es "+q.ans+"."
+    : "Colócalo en columnas y resta de derecha a izquierda: unidades, decenas, centenas.";
+  return deep ? "El resultado es "+q.ans+"." : "Piensa: ¿hay que juntar (multiplicar) o quitar (restar)? Hazlo con calma.";
 }
-function questionHint(){
+function questionHint(deep){
   const q=curDay.qs[qi];
   if(mode==="columns") return colExplain(dActive);
-  if(q.t==="mul") return mulHint(q.x,q.y);
-  if(q.t==="miss") return missHint(q.a,q.r);
-  if(q.t==="prob") return probHint(q);
-  if(q.t==="steps"){ const p=q.parts[activeSlot]; return "Fíjate en “"+p.label+"” y resuélvelo. El resultado es "+p.ans+"."; }
-  return "La respuesta es "+(slots[0]?slots[0].ans:"")+".";
+  if(q.t==="mul") return mulHint(q.x,q.y,deep);
+  if(q.t==="miss") return missHint(q.a,q.r,deep);
+  if(q.t==="prob") return probHint(q,deep);
+  if(q.t==="steps"){ const p=q.parts[activeSlot];
+    return deep ? "Fíjate en “"+p.label+"”. El resultado de este paso es "+p.ans+"."
+      : "Fíjate en “"+p.label+"”. Si es el paso 2, usa la respuesta del paso 1."; }
+  return "Piensa con calma, tú puedes 💛";
 }
 function showHint(txt){ const el=document.getElementById("q-hint"); el.innerHTML="💡 "+txt; el.classList.remove("hidden"); }
 function hideHint(){ const el=document.getElementById("q-hint"); if(el) el.classList.add("hidden"); }
 
 function check(){
-  if(mode==="columns"){ showHint(colExplain(dActive)); return; }
+  if(mode==="columns"){ return; }
   const q=curDay.qs[qi]; const fb=document.getElementById("q-fb");
   // para steps, comprobamos el slot activo; para el resto, el único
   const s=slots[activeSlot];
   if(s.done){ return; }
-  if(s.val===""){ return; }
-  tries++;
+  if(s.val===""){
+    fb.className="fb no"; fb.textContent="Escribe tu respuesta con los números 👇";
+    s.el.classList.add("bad"); setTimeout(()=>s.el.classList.remove("bad"),400);
+    return;
+  }
+  tries++; s.tr=(s.tr||0)+1;
   if(parseInt(s.val,10)===s.ans){
     s.done=true; s.el.classList.remove("active","bad"); s.el.classList.add("ok"); s.el.innerHTML=s.val;
+    sfxOk(); catMood("feliz"); sparkAt(s.el);
     // ¿quedan slots?
     const nextOpen=slots.findIndex(x=>!x.done);
     if(nextOpen===-1){
-      if(tries===1 && !revealed) firstTryCorrect++;
-      fb.className="fb ok"; fb.textContent=PRAISE[Math.floor(qi+curDay.n)%PRAISE.length];
+      const clean=slots.every(x=>(x.tr||0)===1);
+      statAdd(clean);
+      if(clean && !revealed && !q.rep) firstTryCorrect++;
+      fb.className="fb ok"; fb.textContent=PRAISE[(qi+dayNum())%PRAISE.length];
       burst();
-      setTimeout(next, 900);
+      setTimeout(next, 1300);
     } else {
       activeSlot=nextOpen; drawSlots();
       fb.className="fb ok"; fb.textContent="¡Bien! Sigue 👍";
     }
   } else {
-    s.el.classList.add("bad"); setTimeout(()=>s.el.classList.remove("bad"),400);
+    (s.bads=s.bads||[]).push(s.val);
+    s.el.classList.add("bad"); sfxNo(); catMood("uy"); statAdd(false);
+    const bad=s.val;
+    setTimeout(()=>{ s.el.classList.remove("bad"); if(!s.done && s.val===bad){ s.val=""; drawSlots(); } },600);
     fb.className="fb no"; fb.textContent=TRYAG[tries%TRYAG.length];
-    if(tries>=2){ revealed=true; showHint(questionHint()); }
-    s.val=""; drawSlots();
+    if(s.tr>=2){ if(s.tr>=4) revealed=true; showHint(questionHint(s.tr>=4)); if(s.tr===2) aiHintSingle(q,s); }
+    drawSlots();
   }
 }
 
+function errKey(q){ return q.t+"|"+(q.a!=null?q.a:(q.x!=null?q.x:""))+"|"+(q.b!=null?q.b:(q.y!=null?q.y:(q.r!=null?q.r:"")))+"|"+(q.text||""); }
+function errAdd(q){
+  const e=(progress.errs=progress.errs||[]);
+  const k=errKey(q);
+  if(e.some(x=>errKey(x)===k)) return;
+  const c=Object.assign({},q); delete c.rep;
+  e.push(c); if(e.length>10) e.shift();
+  save();
+}
+function errRemove(q){
+  const k=errKey(q);
+  progress.errs=(progress.errs||[]).filter(x=>errKey(x)!==k); save();
+}
+
 function next(){
+  const q=curDay.qs[qi];
+  const failed = (mode==="columns") ? !qClean : (slots.some(x=>(x.tr||0)>1) || revealed);
+  if(failed && !q.rep){
+    curDay.qs.push(Object.assign({},q,{rep:true}));
+    if(!curDay.review && curDay.n!=="IA") errAdd(q);
+  }
+  if(!failed && curDay.review && !q.rep) errRemove(q);
   qi++;
   if(qi>=curDay.qs.length){ finishDay(); }
   else { renderQ(); }
 }
 
 function finishDay(){
-  const total=curDay.qs.length;
+  const total=curDay.qs.filter(q=>!q.rep).length;
   let stars = firstTryCorrect>=total ? 3 : (firstTryCorrect>=Math.ceil(total*0.6) ? 2 : 1);
-  const prev=progress[curDay.n]||0;
-  progress[curDay.n]=Math.max(prev,stars); save();
-  bigConfetti();
   const c=document.getElementById("done-card");
+  const today=new Date().toDateString();
+  let extraMsgs=[], gift=null, newMedals=[], skinPrize=null;
+
+  if(curDay.review){
+    if(firstTryCorrect>=total && total>0){ progress.extra=(progress.extra||0)+1; extraMsgs.push("⭐ +1 por repasar tus fallos"); }
+    save();
+  } else if(curDay.n==="IA"){
+    if(progress.aiBonusDate!==today){ progress.aiBonusDate=today; progress.aiBonusDay=0; }
+    const add=Math.max(0,Math.min(stars,3-(progress.aiBonusDay||0)));
+    progress.aiBonusDay=(progress.aiBonusDay||0)+add;
+    progress.bonus=(progress.bonus||0)+add;
+    if(add>0) extraMsgs.push("⭐ +"+add+" por el reto del gato");
+    save();
+  } else {
+    const prev=progress[curDay.n]||0;
+    progress[curDay.n]=Math.max(prev,stars);
+    if(stars===3 && prev<3){ progress.extra=(progress.extra||0)+1; extraMsgs.push("⭐ +1 extra por día perfecto"); }
+    else if(prev===3 && progress.lastReplayDate!==today){ progress.lastReplayDate=today; progress.extra=(progress.extra||0)+1; extraMsgs.push("⭐ +1 por volver a practicar"); }
+    if(progress.lastDay!==today){
+      const diff = progress.lastDay ? Math.round((new Date(today)-new Date(progress.lastDay))/86400000) : 99;
+      progress.streak = (diff<=2) ? (progress.streak||0)+1 : 1;
+      progress.lastDay=today;
+      if(progress.streak===3||progress.streak===7){ progress.extra=(progress.extra||0)+2; extraMsgs.push("🔥 ¡Racha de "+progress.streak+" días! +2⭐"); }
+    }
+    const done=daysDone();
+    if(done>0 && done%5===0 && progress.lastGift!==done){
+      const pool=ITEMS.filter(i=>!owns(i.id));
+      if(pool.length){ gift=pool[Math.floor(Math.random()*pool.length)]; progress.lastGift=done; progress.av.owned.push(gift.id); }
+    }
+    if(curDay.n===15 && !owns("solverano")){ progress.av.owned.push("solverano"); skinPrize={id:"solverano",name:"Sol de verano",tit:"🌞 ¡MITAD DEL VERANO!"}; }
+    if(curDay.n===30 && !owns("arcoiris")){ progress.av.owned.push("arcoiris"); skinPrize={id:"arcoiris",name:"Arcoíris",tit:"🌈 ¡PREMIO FINAL!"}; }
+    newMedals=checkMedals();
+    save();
+  }
+  bigConfetti(); sfxWin();
+  if(stars===3) setTimeout(bigConfetti,600);
+
   const nextN = (DATA.days.find(d=>progress[d.n]==null)||{}).n;
   let dip="";
+  if(skinPrize){
+    dip+='<div class="diploma"><div class="dh">'+skinPrize.tit+'</div>'+
+         '<div>Tu gato gana el pelaje <b>'+skinPrize.name+'</b> '+SKIN_EMOJI[skinPrize.id]+'<br>¡Póntelo en la tienda!</div></div>';
+  }
   if(curDay.diploma){
-    dip='<div class="diploma"><div class="dh">🏅 DIPLOMA DE VERANO 🏅</div>'+
+    dip+='<div class="diploma"><div class="dh">🏅 DIPLOMA DE VERANO 🏅</div>'+
         '<div>Este diploma es para</div><div class="dnm">'+NAME+'</div>'+
         '<div>por repasar las mates de todo el verano.<br>¡Enhorabuena, campeona! 🌟</div></div>';
   }
-  c.innerHTML='<div class="bigstars">'+'⭐'.repeat(stars)+'☆'.repeat(3-stars)+'</div>'+
-    '<h2>¡Día '+curDay.n+' completado!</h2>'+
+  let sh='';
+  for(let i=0;i<3;i++){ sh += (i<stars) ? '<span class="bstar" style="--i:'+i+'">⭐</span>' : '<span style="opacity:.35">☆</span>'; }
+  const tit = curDay.review ? "¡Repaso completado!" : (curDay.n==="IA" ? "¡Reto del gato superado!" : "¡Día "+curDay.n+" completado!");
+  c.innerHTML=
+    '<div class="starWrap"><div class="starburst"></div><div class="bigstars">'+sh+'</div></div>'+
+    '<h2>'+tit+'</h2>'+
     '<div class="score">Acertaste a la primera '+firstTryCorrect+' de '+total+'</div>'+
     '<div class="done-msg">'+(stars===3?'¡Increíble, todo perfecto! 🥳':'¡Muy buen trabajo! 💪')+'</div>'+
+    '<div class="danceCat">'+catSVG(Object.assign(avState(),{mood:"feliz",head:progress.av.head||"fiesta"}))+'</div>'+
+    extraMsgs.map(m=>'<div class="medalRow">'+m+'</div>').join("")+
+    newMedals.map(m=>'<div class="medalRow">🏅 ¡Nueva medalla! '+m.emoji+' '+m.name+'</div>').join("")+
+    (gift?'<div class="giftBox">🎁 ¡El gato te trae un regalo por tus '+daysDone()+' días!<br><span style="font-size:26px">'+gift.emoji+'</span> <b>'+gift.name+'</b> — ¡ya es tuyo, póntelo en la tienda!</div>':'')+
+    '<div id="catSaysSlot"></div>'+
     '<div class="wallet" style="margin:10px auto 0;">🛍️ Tienes '+wallet()+' ⭐ para la tienda</div>'+
     dip+
     '<div class="done-btns">'+
       '<button class="bhome" id="d-home">🗺️ Mapa</button>'+
       '<button class="bhome" id="d-shop">🛍️ Tienda</button>'+
-      (nextN?'<button class="bnext" id="d-next">Día '+nextN+' →</button>':'<button class="bnext" id="d-again">Repetir 🔁</button>')+
+      (nextN&&!curDay.review&&curDay.n!=="IA"?'<button class="bnext" id="d-next">Día '+nextN+' →</button>':'')+
     '</div>';
   document.getElementById("d-home").onclick=renderHome;
   document.getElementById("d-shop").onclick=openShop;
   const dn=document.getElementById("d-next"); if(dn) dn.onclick=()=>openDay(nextN);
-  const da=document.getElementById("d-again"); if(da) da.onclick=()=>openDay(curDay.n);
   show("doneView");
+  if(!curDay.review && curDay.n!=="IA") aiDayMsg(curDay.n, stars, firstTryCorrect, total);
+}
+
+function aiDayMsg(dayN, stars, ok, total){
+  if(typeof aiAllowed!=="function") return;
+  progress.aiMsgs=progress.aiMsgs||{};
+  const put=(m)=>{ const s=document.getElementById("catSaysSlot"); if(!s) return;
+    s.innerHTML='<div class="catSays"><div class="mini">'+catSVG(avState())+'</div><div>'+escT(m)+'</div></div>'; };
+  if(progress.aiMsgs[dayN]){ put(progress.aiMsgs[dayN]); return; }
+  if(!aiAllowed("msgs")) return;
+  const ctx={tema:curDay.theme, estrellas:stars, aciertos_a_la_primera:ok, de:total, racha_dias:progress.streak||0,
+             gato:{pelaje:progress.av.skin, cabeza:progress.av.head, gafas:progress.av.eyes, cuello:progress.av.neck, espalda:progress.av.back}};
+  aiCall(AI_MSG_SYS, JSON.stringify(ctx), AI_MSG_SCHEMA, 150, "msgs").then(r=>{
+    if(!r||!r.mensaje) return;
+    if(curDay && curDay.n===dayN && !document.getElementById("doneView").classList.contains("hidden")){
+      progress.aiMsgs[dayN]=r.mensaje; save(); put(r.mensaje);
+    }
+  });
 }
 
 // ================= CREAR GATO + TIENDA =================
@@ -827,7 +1181,7 @@ function openShop(){ shopTab="skin"; renderShop(); }
 function renderShop(){
   document.getElementById("s-cat").innerHTML=catSVG(avState());
   document.getElementById("s-wallet").textContent="⭐ "+wallet()+" para gastar";
-  const tabs=[["skin","Pelaje 🐈"],["head","Cabeza 🎩"],["eyes","Gafas 👓"],["neck","Cuello 🎀"],["eyecolor","Ojos 👀"]];
+  const tabs=[["skin","Pelaje 🐈"],["head","Cabeza 🎩"],["eyes","Gafas 👓"],["neck","Cuello 🎀"],["back","Espalda 🦋"],["eyecolor","Ojos 👀"]];
   const tb=document.getElementById("s-tabs"); tb.innerHTML="";
   tabs.forEach(t=>{ const b=document.createElement("button"); b.className="tab"+(t[0]===shopTab?" sel":"");
     b.textContent=t[1]; b.onclick=()=>{ shopTab=t[0]; renderShop(); }; tb.appendChild(b); });
@@ -844,59 +1198,183 @@ function renderShop(){
     show("shopView"); return;
   }
   let list = (shopTab==="skin")
-    ? SKINS.map(s=>({id:s.id,name:s.name,emoji:SKIN_EMOJI[s.id],cost:s.cost,slot:"skin"}))
+    ? SKINS.map(s=>({id:s.id,name:s.name,emoji:SKIN_EMOJI[s.id],cost:s.cost,prize:s.prize,slot:"skin"}))
     : ITEMS.filter(i=>i.slot===shopTab);
   list.forEach(it=>{
     const bought = it.cost===0 || owns(it.id);
     const equipped = (it.slot==="skin") ? progress.av.skin===it.id : progress.av[it.slot]===it.id;
     const el=document.createElement("div"); el.className="item"+(equipped?" equipped":"");
-    let btn;
-    if(!bought){ const can=wallet()>=it.cost;
-      btn='<button class="iBtn buy'+(can?" can":"")+'"'+(can?"":" disabled")+'>⭐ '+it.cost+'</button>'; }
+    let btn="", lock="";
+    if(!bought && it.cost==null){
+      lock='<div class="iLock">🏆 '+(it.prize||"Premio especial")+'</div>';
+    } else if(!bought){
+      const can=wallet()>=it.cost;
+      btn='<button class="iBtn buy'+(can?" can":"")+'"'+(can?"":" disabled")+'>⭐ '+it.cost+'</button>';
+      if(!can) lock='<div class="iLock">Te faltan '+(it.cost-wallet())+' ⭐ · ¡haz más días!</div>';
+    }
     else if(equipped){ btn='<button class="iBtn on">'+(it.slot==="skin"?"Puesto ✓":"Puesto ✓ (quitar)")+'</button>'; }
     else { btn='<button class="iBtn equip">Poner</button>'; }
-    el.innerHTML='<div class="iEmoji">'+it.emoji+'</div><div class="iName">'+it.name+'</div>'+btn;
+    el.innerHTML='<div class="iEmoji">'+it.emoji+'</div><div class="iName">'+it.name+'</div>'+btn+lock;
     const b=el.querySelector("button");
     if(b) b.onclick=()=>{ if(!bought) buyItem(it); else equipItem(it); };
     box.appendChild(el);
   });
   show("shopView");
 }
+function catTryOn(){
+  const sc=document.getElementById("s-cat");
+  if(sc){ sc.classList.remove("tryOn"); void sc.offsetWidth; sc.classList.add("tryOn"); }
+}
 function buyItem(it){
   if(wallet()<it.cost) return;
   progress.spent=(progress.spent||0)+it.cost;
   progress.av.owned.push(it.id);
   if(it.slot==="skin") progress.av.skin=it.id; else progress.av[it.slot]=it.id;
-  save(); burst(); renderShop();
+  save(); sfxCoin(); spawn(6,1800,["💖","💗","⭐"]); renderShop(); catTryOn();
 }
 function equipItem(it){
   if(it.slot==="skin"){ progress.av.skin=it.id; }
   else { progress.av[it.slot] = (progress.av[it.slot]===it.id ? null : it.id); }
-  save(); renderShop();
+  save(); renderShop(); catTryOn();
 }
 
 // ---- confetti ----
-function spawn(list,ms){
+function spawn(count,ms,set){
   const box=document.getElementById("confetti");
-  list.forEach(()=>{
+  const em=set||["⭐","🌟","🎉","✨","💛","🎈","🌈","🐾","🐱"];
+  for(let i=0;i<count;i++){
     const s=document.createElement("div"); s.className="cf";
-    s.textContent=["⭐","🌟","🎉","✨","💛","🎈","🌈"][Math.floor(Math.random()*7)];
+    s.textContent=em[Math.floor(Math.random()*em.length)];
     s.style.left=(Math.random()*100)+"vw"; s.style.top="-30px";
     s.style.animationDuration=(1.6+Math.random()*1.4)+"s"; s.style.fontSize=(16+Math.random()*22)+"px";
     box.appendChild(s); setTimeout(()=>s.remove(),ms);
-  });
+  }
 }
-function burst(){ spawn(new Array(10).fill(0),2600); }
-function bigConfetti(){ spawn(new Array(40).fill(0),3200); }
+function burst(){ spawn(10,2600); }
+function bigConfetti(){ spawn(40,3200); }
+
+// ================= IA EN LA APP (todo opcional y con fallback) =================
+function aiMapEjercicios(list){
+  const out=[];
+  (list||[]).forEach(e=>{
+    try{
+      const em=(e.emoji||"").trim()||"🍎";
+      if(e.tipo==="sub" && e.a>e.b && e.b>=10 && e.a<=999){ out.push({t:"sub",a:e.a,b:e.b}); }
+      else if(e.tipo==="mul" && e.a>=0&&e.a<=10&&e.b>=0&&e.b<=10){ out.push({t:"mul",x:e.a,y:e.b}); }
+      else if(e.tipo==="miss" && e.a>=2&&e.a<=10&&e.b>=2&&e.b<=9){ out.push({t:"miss",a:e.a,r:e.a*e.b}); }
+      else if(e.tipo==="prob_mul" && e.a>=2&&e.a<=6&&e.b>=1&&e.b<=6&&e.texto){
+        out.push({t:"prob",text:escT(e.texto),illus:{mode:"groups",e:em,g:e.a,per:e.b},ans:e.a*e.b}); }
+      else if(e.tipo==="prob_sub" && e.a>e.b&&e.b>=1&&e.a<=999&&e.texto){
+        out.push({t:"prob",text:escT(e.texto),
+          illus:(e.a<=18?{mode:"row",e:em,n:e.a,cross:e.b}:{mode:"bignum",text:e.a+" − "+e.b}),ans:e.a-e.b}); }
+    }catch(err){}
+  });
+  return out.slice(0,6);
+}
+function aiOverlay(html){
+  const d=document.createElement("div"); d.className="aiLoad"; d.innerHTML=html;
+  document.body.appendChild(d); return d;
+}
+async function startReto(){
+  if(!aiAllowed("retos")){
+    const d=aiOverlay('<div class="thinkCat">'+catSVG(Object.assign(avState(),{mood:"uy"}))+'</div><div>El gato está durmiendo 😴<br>¡Prueba mañana!</div>');
+    setTimeout(()=>d.remove(),2000); return;
+  }
+  const d=aiOverlay('<div class="thinkCat">'+catSVG(avState())+'</div><div>El gato está pensando<br>ejercicios para ti… 🐾</div>');
+  const hechos=DATA.days.filter(x=>progress[x.n]!=null).map(x=>({dia:x.n,tema:x.theme,estrellas:progress[x.n]}));
+  const ctx={dias_hechos:hechos, aciertos_y_fallos:progress.stats||{}, fallos_recientes:(progress.errs||[]).map(errKey)};
+  const r=await aiCall(AI_RETO_SYS, JSON.stringify(ctx), AI_RETO_SCHEMA, 1200, "retos");
+  d.remove();
+  const qs=r?aiMapEjercicios(r.ejercicios):[];
+  if(qs.length<3){
+    const d2=aiOverlay('<div class="thinkCat">'+catSVG(Object.assign(avState(),{mood:"uy"}))+'</div><div>El gato está durmiendo 😴<br>¡Prueba más tarde!</div>');
+    setTimeout(()=>d2.remove(),2000); return;
+  }
+  curDay={n:"IA",theme:"Reto del gato 🐾",qs:qs}; qi=0; firstTryCorrect=0;
+  startQuiz();
+}
+function aiHintPut(tok,mkTok,pista){
+  if(!pista) return;
+  if(mkTok()!==tok) return;
+  const el=document.getElementById("q-hint");
+  if(el && !el.classList.contains("hidden")) el.innerHTML='<div class="aiPista">🐱 '+escT(pista)+'</div>'+el.innerHTML;
+}
+function aiHintCol(){
+  if(typeof aiAllowed!=="function" || !aiAllowed("pistas")) return;
+  const i=dActive, info=dInfo[i], c=dCells[i];
+  const mk=()=>curDay?String(curDay.n)+"/"+qi+"/"+dActive:"x";
+  const tok=mk();
+  const ctx={tipo:"resta en columna",columna:c.name,numero_de_arriba:info.ai,numero_de_abajo:info.bi,
+             ya_presto_antes:!!info.bin,tiene_que_pedir_prestado:!!info.bout,respuesta_correcta:info.res,intentos_fallidos:c.bads};
+  aiCall(AI_PISTA_SYS, JSON.stringify(ctx), AI_PISTA_SCHEMA, 200, "pistas").then(r=>aiHintPut(tok,mk,r&&r.pista));
+}
+function aiHintSingle(q,s){
+  if(typeof aiAllowed!=="function" || !aiAllowed("pistas")) return;
+  const mk=()=>curDay?String(curDay.n)+"/"+qi:"x";
+  const tok=mk();
+  const preg = q.t==="mul" ? q.x+" × "+q.y : (q.t==="miss" ? q.a+" × ? = "+q.r : (q.text||""));
+  const ctx={tipo:kindLabel(q),pregunta:preg,respuesta_correcta:s.ans,intentos_fallidos:s.bads||[]};
+  aiCall(AI_PISTA_SYS, JSON.stringify(ctx), AI_PISTA_SCHEMA, 200, "pistas").then(r=>aiHintPut(tok,mk,r&&r.pista));
+}
+function renderFamily(){
+  famUsage();
+  const c=document.getElementById("famCard");
+  const u=famConf.usage;
+  c.innerHTML=
+    (famConf.lastError==="key"?'<div class="famErr">⚠️ La clave de API no funciona: la IA se desactivó sola. Revisa la clave y vuelve a activarla.</div>':"")+
+    '<h3>🤖 Tutor con IA (opcional)</h3>'+
+    '<p style="margin:4px 0;color:var(--muted);font-size:13px">Con una clave de API de Claude, el gato inventa ejercicios nuevos adaptados a Laura, da pistas personalizadas y escribe mensajes de ánimo. Sin clave, la app funciona exactamente igual (sin IA). La clave se guarda SOLO en este dispositivo.</p>'+
+    '<div class="famRow"><label style="font-weight:800"><input type="checkbox" id="fam-on"'+(famConf.enabled?" checked":"")+'> Activar IA</label></div>'+
+    '<div class="famRow"><input type="password" id="fam-key" placeholder="sk-ant-…" value="'+escT(famConf.key)+'"><button class="famBtn" id="fam-test">Probar</button></div>'+
+    '<div id="fam-test-res" style="font-size:13px;font-weight:700;min-height:18px"></div>'+
+    '<h3>Límites por día</h3>'+
+    '<div class="famRow">🐾 Retos <input type="number" id="fam-retos" min="0" max="10" value="'+famConf.retos+'"> 💡 Pistas <input type="number" id="fam-pistas" min="0" max="30" value="'+famConf.pistas+'"> 💬 Mensajes <input type="number" id="fam-msgs" min="0" max="5" value="'+famConf.msgs+'"></div>'+
+    '<div class="famNote">💰 Haiku cuesta 1 $/millón de tokens de entrada y 5 $/millón de salida: con los límites por defecto, el máximo ronda los 0,05 $/día. Consejo: crea en console.anthropic.com una clave SOLO para esta app y ponle un límite de gasto mensual.</div>'+
+    '<div style="font-size:13px;color:var(--muted)">Este mes: '+u.calls+' llamadas · '+u.tokIn+' tokens entrada · '+u.tokOut+' salida · ≈ '+aiCostMes().toFixed(3)+' $<br>Hoy: '+u.retos+' retos · '+u.pistas+' pistas · '+u.msgs+' mensajes</div>';
+  document.getElementById("fam-on").onchange=e=>{ famConf.enabled=e.target.checked; if(famConf.enabled){ famConf.lastError=null; aiKeyFails=0; } famSave(); };
+  document.getElementById("fam-key").oninput=e=>{ famConf.key=e.target.value.trim(); aiKeyFails=0; famSave(); };
+  ["retos","pistas","msgs"].forEach(k=>{ document.getElementById("fam-"+k).onchange=e=>{
+    famConf[k]=Math.max(0,Math.min(AI_MAX[k],parseInt(e.target.value,10)||0)); famSave(); }; });
+  document.getElementById("fam-test").onclick=async ()=>{
+    const r=document.getElementById("fam-test-res"); r.textContent="Probando…"; r.style.color="#888";
+    const res=await aiCall("Responde únicamente: ok","hola",null,16,null);
+    if(res){ r.textContent="✅ ¡La clave funciona!"; r.style.color="#128a53"; }
+    else { r.textContent="❌ No funciona (revisa la clave o la conexión)"; r.style.color="#b33"; }
+  };
+  show("familyView");
+}
 
 // ---- eventos ----
 document.getElementById("i-back").onclick=renderHome;
-document.getElementById("q-back").onclick=renderHome;
+document.getElementById("q-back").onclick=()=>{
+  const enMedio = qi>0 || tries>0 || (mode==="columns" && (dActive<dW-1 || !qClean));
+  if(enMedio && !confirm("¿Salir del día? Perderás las estrellas de hoy 🥺")) return;
+  renderHome();
+};
 document.getElementById("s-back").onclick=renderHome;
 document.getElementById("c-done").onclick=finishCreate;
 document.getElementById("i-start").onclick=startQuiz;
-document.getElementById("q-hintbtn").onclick=()=>showHint(questionHint());
-document.getElementById("resetBtn").onclick=()=>{ if(confirm("¿Borrar todo (estrellas y gato) y empezar de cero?")){ progress={}; avInit(); save(); renderCreate(); } };
+document.getElementById("q-hintbtn").onclick=()=>{
+  hintTaps++;
+  if(mode==="columns"){ if(!dCells[dActive].locked) qClean=false; revealed=true; showHint(colExplain(dActive)); }
+  else { revealed=true; showHint(questionHint(hintTaps>=2)); }
+};
+document.getElementById("muteBtn").onclick=()=>{
+  progress.mute=!progress.mute; save();
+  document.getElementById("muteBtn").textContent=progress.mute?"🔇":"🔊";
+};
+document.getElementById("retoBtn").onclick=startReto;
+document.getElementById("f-back").onclick=renderHome;
+function parentGate(){
+  const a=12+Math.floor(Math.random()*8), b=4+Math.floor(Math.random()*5);
+  const r=prompt("Pregunta para papá o mamá 👨‍👩‍👧\n¿Cuánto es "+a+" × "+b+"?");
+  return r!==null && parseInt(r,10)===a*b;
+}
+document.getElementById("famBtn").onclick=()=>{ if(parentGate()) renderFamily(); };
+document.getElementById("resetBtn").onclick=()=>{
+  if(!parentGate()) return;
+  if(confirm("¿Borrar todo (estrellas y gato) y empezar de cero?")){ progress={}; avInit(); save(); renderCreate(); }
+};
 
 // ---- arranque ----
 if(!progress.av.created){ renderCreate(); } else { renderHome(); }
@@ -909,7 +1387,10 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_HERE)
 with open(os.path.join(_HERE, "cat.js"), encoding="utf-8") as f:
     cat_js = f.read()
+with open(os.path.join(_HERE, "ai.js"), encoding="utf-8") as f:
+    ai_js = f.read()
 html = (HTML.replace("__CATJS__", cat_js)
+            .replace("__AIJS__", ai_js)
             .replace("__DATA__", data_json)
             .replace("__NAME__", NAME))
 _out_dir = os.path.join(_ROOT, "public")

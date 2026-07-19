@@ -1,14 +1,31 @@
 # Las mates de Laura 🐱⭐
 
 App web interactiva (y cuaderno imprimible) para que una niña de ~7 años repase
-las mates en verano: **restas con llevadas**, **tablas de multiplicar** y
-**problemas ilustrados**, con autocorrección paso a paso, teclado en pantalla,
-explicaciones cuando se equivoca, y un **gato negro personalizable** con una
-**tienda** de skins y accesorios que se desbloquean con las estrellas ganadas.
+las mates en verano: **restas con llevadas** (con el "1" de la llevada pintado
+encima de cada columna, como en papel), **tablas de multiplicar del 2 al 10**
+con dibujos de grupos, **problemas ilustrados** de 1 y 2 pasos y de comparación,
+con autocorrección paso a paso, teclado en pantalla, pistas en dos niveles,
+repaso automático de fallos, sonidos, medallas, rachas, regalos sorpresa y un
+**gato negro personalizable** (¡vivo!: parpadea, mueve la cola y reacciona) con
+una **tienda** de skins y accesorios que se desbloquean con las estrellas ganadas.
 
 La app es un **único archivo HTML autocontenido**, sin dependencias ni conexión:
 funciona offline en el iPad (ideal para viajes) y guarda el progreso en el
 navegador (`localStorage`).
+
+### Tutor con IA (opcional)
+
+Desde la **Zona de familia** (protegida con una multiplicación que la peque aún
+no sabe hacer) se puede pegar una clave de API de Claude para activar un tutor
+con IA (modelo Haiku): el gato inventa **retos con ejercicios nuevos adaptados**
+a su progreso real, da **pistas personalizadas** cuando falla y escribe
+**mensajes de ánimo**. Con límites de uso diario configurables y aviso de coste
+(≈0,05 $/día como máximo con los límites por defecto).
+
+> 🔑 **La clave nunca se guarda en el repo ni en la web publicada**: se escribe
+> una vez en el dispositivo y vive solo en su `localStorage` (en una clave
+> separada del progreso). Sin clave o sin conexión, la app funciona exactamente
+> igual: la IA es siempre un extra, nunca un requisito.
 
 ## Estructura
 
@@ -17,8 +34,9 @@ laura-mates/
 ├── public/
 │   └── index.html          # App final (generada). Esto es lo que se despliega.
 ├── src/
-│   ├── build_app.py        # Generador de la app web (inyecta cat.js + datos)
+│   ├── build_app.py        # Generador de la app web (inyecta cat.js + ai.js + datos)
 │   ├── cat.js              # Gato negro en SVG + catálogo de la tienda
+│   ├── ai.js               # Tutor IA opcional (Claude Haiku, clave solo en el dispositivo)
 │   └── generate_pdf.py     # (Opcional) genera el cuaderno imprimible en PDF
 ├── Cuaderno_de_verano_Laura.pdf   # Cuaderno imprimible (B/N, 30 días)
 ├── .github/workflows/deploy.yml   # Deploy automático a GitHub Pages

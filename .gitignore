@@ -12,3 +12,4 @@ venv/
 cuaderno.html
 qa-*.png
 *.tmp
+.playwright-mcp/
