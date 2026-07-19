@@ -484,7 +484,7 @@ button{font-family:inherit; cursor:pointer; border:none;}
 
 /* ---------- COLONIA DE GATOS ---------- */
 #home{padding-bottom:88px;}
-#colony .walkCat{position:fixed; bottom:0; left:0; width:64px; z-index:5; cursor:pointer;}
+#colony .walkCat{position:absolute; top:0; left:0; width:64px; z-index:5; cursor:pointer; will-change:transform;}
 #colony .wcInner{animation:wcBob 1.1s ease-in-out infinite;}
 #colony .wcInner.jump{animation:catJump .6s cubic-bezier(.5,1.6,.5,1);}
 @keyframes wcBob{50%{transform:translateY(-2.5px)}}
@@ -1521,14 +1521,14 @@ function renderColony(){
     d.innerHTML='<div class="wcName"></div><div class="wcFlip"><div class="wcInner">'+catSVG(c)+'</div></div>';
     d.querySelector(".wcName").textContent=c.catName||"miau";
     const w={el:d,flip:d.querySelector(".wcFlip"),inner:d.querySelector(".wcInner"),
-             x:20+i*85,dir:(i%2?-1:1),pause:rndInt(0,50),speed:.7+Math.random()*.9};
+             x:20+i*85,dir:(i%2?-1:1),pause:rndInt(0,2500),speed:.7+Math.random()*.9};
     d.onclick=()=>petCat(w);
-    d.style.transform="translateX("+w.x+"px)";
+    d.style.transform="translate("+w.x+"px,"+colonyY()+"px)";
     box.appendChild(d); colonyCats.push(w);
   });
 }
 function petCat(w){
-  sfxMeow(); w.pause=34;
+  sfxMeow(); w.pause=1700;
   w.inner.classList.remove("jump"); void w.inner.offsetWidth; w.inner.classList.add("jump");
   setTimeout(()=>w.inner.classList.remove("jump"),700);
   const nm=w.el.querySelector(".wcName"); nm.classList.add("on");
@@ -1537,22 +1537,36 @@ function petCat(w){
     s.className="spk"; s.textContent="💖"; s.style.left=(r.left+22)+"px"; s.style.top=(r.top-10)+"px";
     document.body.appendChild(s); setTimeout(()=>s.remove(),750); }catch(e){}
 }
-function colonyTick(){
-  if(!colonyCats.length) return;
+function colonyY(){
+  // borde inferior de la PANTALLA (no del documento): en iOS position:fixed
+  // falla con overflow-x:hidden en el body, así que lo calculamos a mano
+  try{
+    const vv=window.visualViewport;
+    if(vv) return Math.round(vv.pageTop+vv.height-78);
+  }catch(e){}
+  return Math.round((window.scrollY||document.documentElement.scrollTop||0)+window.innerHeight-78);
+}
+let colonyLast=0;
+function colonyFrame(ts){
+  requestAnimationFrame(colonyFrame);
   const home=document.getElementById("home");
-  if(!home || home.classList.contains("hidden")) return;
+  if(!colonyCats.length || !home || home.classList.contains("hidden")){ colonyLast=ts; return; }
+  const dt=Math.min(100,ts-(colonyLast||ts)); colonyLast=ts;
   const max=Math.max(80,window.innerWidth-72);
+  const y=colonyY();
   colonyCats.forEach(w=>{
-    if(w.pause>0){ w.pause--; return; }
-    w.x+=w.dir*w.speed;
-    if(w.x>=max) w.dir=-1;
-    if(w.x<=4) w.dir=1;
-    if(Math.random()<0.004) w.pause=rndInt(30,110);
-    w.el.style.transform="translateX("+w.x+"px)";
+    if(w.pause>0){ w.pause-=dt; }
+    else{
+      w.x+=w.dir*w.speed*dt/50;
+      if(w.x>=max) w.dir=-1;
+      if(w.x<=4) w.dir=1;
+      if(Math.random()<0.004*dt/50) w.pause=rndInt(1500,5500);
+    }
+    w.el.style.transform="translate("+w.x+"px,"+y+"px)";
     w.flip.style.transform="scaleX("+(w.dir>0?-1:1)+")";
   });
 }
-setInterval(colonyTick,50);
+requestAnimationFrame(colonyFrame);
 
 // ---- eventos ----
 document.getElementById("i-back").onclick=renderHome;

@@ -82,8 +82,11 @@ en PDF.
     los demás viven en `progress.cats[]` con `progress.activeIdx`. `save()`
     llama a `syncCat()` (vuelca av→cats); `loadCat(i)` hace el cambio inverso.
     Adopción en la tienda (`adoptCat`, precio creciente, máx 6). En el home,
-    `renderColony()`+`colonyTick` (interval 50 ms, solo con home visible)
-    pasean los gatos; `petCat()` = maullido (`sfxMeow`) + salto + corazón.
+    `renderColony()`+`colonyFrame` (rAF, solo con home visible) pasean los
+    gatos; van en `position:absolute` con la Y recalculada por frame vía
+    `colonyY()`/`visualViewport` — NO usar `position:fixed`: con el
+    `overflow-x:hidden` del body, iOS lo rompe y no siguen el scroll.
+    `petCat()` = maullido (`sfxMeow`) + salto + corazón.
   - Días extra: botón ➕ en el mapa → `makeExtraDay()` genera en JS (sin red)
     un día n≥31 (restas `genSubJS`, tablas con hechos difíciles, miss y
     problema con plantillas `extraProb`) y lo guarda en `progress.extraDays`.
