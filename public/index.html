@@ -191,6 +191,7 @@ button{font-family:inherit; cursor:pointer; border:none;}
 .iName{font-size:13px; font-weight:800; margin:2px 0;}
 .iBtn{width:100%; border-radius:12px; padding:9px; font-weight:800; font-size:13px; margin-top:4px;}
 .iBtn.buy{background:#f0ecfa; color:#a99; }
+.iBtn.sell{background:#fff3e2; color:#b06a00; font-size:11.5px; min-height:30px; padding:5px; margin-top:3px;}
 .iBtn.buy.can{background:linear-gradient(160deg,var(--sun),#ff9d2e); color:#5a3b00;}
 .iBtn.equip{background:#efeaff; color:var(--bg1);}
 .iBtn.on{background:var(--ok); color:#fff;}
@@ -1455,7 +1456,7 @@ function renderShop(){
     const bought = it.cost===0 || owns(it.id);
     const equipped = (it.slot==="skin") ? progress.av.skin===it.id : progress.av[it.slot]===it.id;
     const el=document.createElement("div"); el.className="item"+(equipped?" equipped":"");
-    let btn="", lock="";
+    let btn="", lock="", sellB="";
     if(!bought && it.cost==null){
       lock='<div class="iLock">🏆 '+(it.prize||"Premio especial")+'</div>';
     } else if(!bought){
@@ -1465,12 +1466,30 @@ function renderShop(){
     }
     else if(equipped){ btn='<button class="iBtn on">'+(it.slot==="skin"?"Puesto ✓":"Puesto ✓ (quitar)")+'</button>'; }
     else { btn='<button class="iBtn equip">Poner</button>'; }
-    el.innerHTML='<div class="iEmoji">'+it.emoji+'</div><div class="iName">'+it.name+'</div>'+btn+lock;
-    const b=el.querySelector("button");
+    if(bought && it.cost && owns(it.id)) sellB='<button class="iBtn sell">Vender · +'+Math.ceil(it.cost/2)+'⭐</button>';
+    el.innerHTML='<div class="iEmoji">'+it.emoji+'</div><div class="iName">'+it.name+'</div>'+btn+sellB+lock;
+    const b=el.querySelector("button:not(.sell)");
     if(b) b.onclick=()=>{ if(!bought) buyItem(it); else equipItem(it); };
+    const bs=el.querySelector("button.sell");
+    if(bs) bs.onclick=()=>sellItem(it);
     box.appendChild(el);
   });
   show("shopView");
+}
+function sellItem(it){
+  if(!it.cost || !owns(it.id)) return;
+  const val=Math.ceil(it.cost/2);
+  if(!confirm("¿Vender "+it.name+" por "+val+" ⭐?\nDesaparecerá del armario de todos tus gatos.")) return;
+  progress.av.owned=progress.av.owned.filter(id=>id!==it.id);
+  // quitárselo a todos los gatos de la colonia
+  syncCat();
+  progress.cats.forEach(c=>{
+    if(it.slot==="skin"){ if(c.skin===it.id) c.skin="clasico"; }
+    else { ["head","eyes","neck","back"].forEach(s=>{ if(c[s]===it.id) c[s]=null; }); }
+  });
+  loadCat(progress.activeIdx||0);
+  progress.spent=Math.max(0,(progress.spent||0)-val);
+  save(); sfxCoin(); spawn(4,1500,["⭐","💰"]); renderShop(); catTryOn();
 }
 function catTryOn(){
   const sc=document.getElementById("s-cat");
