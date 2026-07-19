@@ -62,15 +62,38 @@ AP="🍎"; GL="🎈"; FL="🌸"; CO="🪙"; CA="🍬"; CK="🍪"; FI="🐟"
 
 # ---------- intros (HTML listo) ----------
 def wex(a, b):
-    """ejemplo resuelto de resta, en vertical, con la respuesta en verde"""
+    """ejemplo resuelto de resta en vertical, con la notación escolar de la
+    llevada: el que presta queda tachado con su nuevo valor encima, y el que
+    recibe lleva un 1 pequeñito delante (el 3 se convierte en 13)."""
     w = max(len(str(a)), len(str(b))); r = a-b
+    da = [int(d) for d in str(a).rjust(w, "0")]
+    db = [int(d) for d in str(b).rjust(w, "0")]
+    info = [None]*w; borrow = 0
+    for i in range(w-1, -1, -1):
+        bin_ = borrow; top = da[i]-borrow
+        bout = 1 if top < db[i] else 0
+        borrow = bout
+        info[i] = {"bin": bin_, "bout": bout, "top": top}
+    def topcells():
+        s = str(a).rjust(w); out = ""
+        for i, ch in enumerate(s):
+            ch2 = "" if ch == " " else ch
+            inf = info[i]; cls = "wc"; inner = ch2; newv = ""
+            if inf["bin"]:  # este número prestó: tachado + valor nuevo encima
+                cls += " lent"
+                nv = "9" if inf["top"] < 0 else (("1"+str(inf["top"])) if inf["bout"] else str(inf["top"]))
+                newv = f'<span class="newv">{nv}</span>'
+            elif inf["bout"]:  # este recibe 10: un 1 pequeñito delante
+                inner = f'<span class="mini1">1</span>{ch2}'
+            out += f'<span class="{cls}">{inner}{newv}</span>'
+        return out
     def cells(s):
         s = str(s).rjust(w)
         return "".join(f'<span class="wc">{"" if ch==" " else ch}</span>' for ch in s)
     def cellsg(s):
         s = str(s).rjust(w)
         return "".join(f'<span class="wc g">{"" if ch==" " else ch}</span>' for ch in s)
-    return (f'<div class="wex"><div class="wr">{cells(a)}</div>'
+    return (f'<div class="wex"><div class="wr">{topcells()}</div>'
             f'<div class="wr"><span class="wop">−</span>{cells(b)}</div>'
             f'<div class="wbar"></div><div class="wr">{cellsg(r)}</div></div>')
 
@@ -406,11 +429,20 @@ button{font-family:inherit; cursor:pointer; border:none;}
 .catBig .bigCat.tryOn{animation:tryOn .7s;}
 @keyframes tryOn{0%{transform:rotate(0)}30%{transform:rotate(-8deg) scale(1.06)}60%{transform:rotate(8deg) scale(1.06)}100%{transform:rotate(0)}}
 
-/* ---------- LLEVADA Y GUÍA EN RESTAS ---------- */
-.crow{margin-bottom:2px;}
-.cbox{width:22px; height:26px; margin:0 auto; border:2px dashed #cdb6ff; border-radius:8px; font-size:16px;
-  font-weight:800; color:#7b5cff; display:flex; align-items:center; justify-content:center; opacity:0;}
-.cbox.on{opacity:1; background:#f4edff; animation:carryPop .45s;}
+/* ---------- LLEVADA Y GUÍA EN RESTAS (notación escolar: tachar y prestar) ---------- */
+.vsub{padding-top:18px;}
+.wex{padding-top:18px;}
+.vc,.wc{position:relative;}
+.vc.lent,.wc.lent{color:#b9b4d6;}
+.vc.lent::before,.wc.lent::before{content:""; position:absolute; left:6px; right:6px; top:50%;
+  border-top:3px solid #ff6b6b; transform:rotate(-20deg); border-radius:2px;}
+.wc.lent::before{left:4px; right:4px; border-top-width:2.5px;}
+.vc .newv,.wc .newv{position:absolute; top:-15px; left:0; right:0; text-align:center; font-size:17px;
+  line-height:1; color:#7b5cff; font-weight:800; animation:carryPop .45s;}
+.wc .newv{font-size:14px; top:-13px;}
+.vc .mini1,.wc .mini1{font-size:17px; color:#7b5cff; vertical-align:top; line-height:1.6;
+  margin-right:-1px; animation:carryPop .45s; display:inline-block;}
+.wc .mini1{font-size:14px; line-height:1.7;}
 @keyframes carryPop{0%{transform:scale(0)}70%{transform:scale(1.35)}100%{transform:scale(1)}}
 .dlab{font-size:14px !important;}
 .dlab-U{color:#1fa564 !important}.dlab-D{color:#2b7fd0 !important}.dlab-C{color:#8b5cf6 !important}
@@ -757,12 +789,11 @@ function bodyHTML(q){
     const pa=(''+q.a).padStart(w,' '), pb=(''+q.b).padStart(w,' ');
     const c=s=>[...s].map(ch=>'<span class="vc">'+(ch===' '?'':ch)+'</span>').join('');
     const labs = w===3?["C","D","U"]:(w===2?["D","U"]:["U"]);
-    let boxes='', labels='', cboxes='';
+    const ct=[...pa].map((ch,i)=>'<span class="vc top" data-t="'+i+'">'+(ch===' '?'':ch)+'</span>').join('');
+    let boxes='', labels='';
     for(let i=0;i<w;i++){ boxes+='<span class="acell"><span class="dbox" data-i="'+i+'"></span></span>';
-      labels+='<span class="acell"><span class="dlab dlab-'+labs[i]+'">'+labs[i]+'</span></span>';
-      cboxes+='<span class="acell"><span class="cbox" data-c="'+i+'"></span></span>'; }
-    return '<div class="vsub"><div class="vrow crow">'+cboxes+'</div>'+
-           '<div class="vrow">'+c(pa)+'</div>'+
+      labels+='<span class="acell"><span class="dlab dlab-'+labs[i]+'">'+labs[i]+'</span></span>'; }
+    return '<div class="vsub"><div class="vrow">'+ct+'</div>'+
            '<div class="vrow"><span class="vop">−</span>'+c(pb)+'</div>'+
            '<div class="vbar"></div>'+
            '<div class="vrow arow2">'+boxes+'</div>'+
@@ -1043,14 +1074,28 @@ function drawCols(){
     else { c.el.classList.add("lockcol"); c.el.innerHTML='<span class="lk">🔒</span>'; }
   });
 }
+function paintBorrow(i){
+  // notación escolar: el que recibe 10 lleva un "1" pequeñito delante; el que
+  // presta queda tachado con su nuevo valor encima. Idempotente.
+  if(!dInfo[i] || dInfo[i].bout!==1 || i<=0) return;
+  const tc=document.querySelector('#q-body .vc.top[data-t="'+i+'"]');
+  if(tc){
+    const nv=tc.querySelector(".newv");
+    if(nv){ if(dInfo[i].top>=0 && nv.textContent.length<2) nv.textContent="1"+nv.textContent; }
+    else if(!tc.querySelector(".mini1")) tc.insertAdjacentHTML("afterbegin",'<span class="mini1">1</span>');
+  }
+  const ln=document.querySelector('#q-body .vc.top[data-t="'+(i-1)+'"]');
+  if(ln && !ln.classList.contains("lent")){
+    ln.classList.add("lent");
+    const v=dInfo[i-1].top>=0 ? dInfo[i-1].top : 9;
+    ln.insertAdjacentHTML("beforeend",'<span class="newv">'+v+'</span>');
+  }
+}
 function colType(k){
   const c=dCells[dActive]; const fb=document.getElementById("q-fb");
   if(parseInt(k,10)===c.res){
     c.val=k; c.locked=true; sfxOk(); catMood("feliz"); sparkAt(c.el);
-    if(dInfo[dActive].bout===1 && dActive>0){
-      const cb=document.querySelector('#q-body .cbox[data-c="'+(dActive-1)+'"]');
-      if(cb){ cb.textContent="1"; cb.classList.add("on"); }
-    }
+    paintBorrow(dActive);
     if(dActive>0){
       dActive--; hideHint(); drawCols();
       fb.className="fb ok"; fb.textContent="¡Muy bien! Ahora las "+dCells[dActive].name+" ⬅️";
@@ -1064,7 +1109,7 @@ function colType(k){
     c.val=k; qClean=false; c.wrong++; c.bads.push(k); drawCols(); sfxNo(); catMood("uy"); statAdd(false);
     c.el.classList.add("bad"); setTimeout(()=>{ if(!c.locked){ c.val=""; drawCols(); } },600);
     fb.className="fb no"; fb.textContent=TRYAG[c.wrong%TRYAG.length];
-    if(c.wrong>=2){ revealed=true; showHint(colExplain(dActive)); if(c.wrong===2) aiHintCol(); }
+    if(c.wrong>=2){ revealed=true; paintBorrow(dActive); showHint(colExplain(dActive)); if(c.wrong===2) aiHintCol(); }
   }
 }
 function colExplain(i){
@@ -1072,12 +1117,13 @@ function colExplain(i){
   const cap=c.name.charAt(0).toUpperCase()+c.name.slice(1);
   if(info.bout){
     if(info.bin && info.ai===0){
-      return cap+": arriba hay un 0 que ya prestó 1. El 0 no tiene, así que pide 10 al vecino y se queda en 9. 9 − "+info.bi+" = "+info.res+". ¡Y se apunta otra llevada!";
+      return cap+": el 0 ya prestó, así que pide 10 al vecino y se convierte en un 9 (mira el número morado sobre el 0 tachado). 9 − "+info.bi+" = "+info.res+".";
     }
-    const base = info.bin ? ("Mira el 1 apuntado arriba: "+info.ai+" − 1 = "+info.top+". ") : "";
-    return base+cap+": "+info.top+" − "+info.bi+" no se puede, así que pides prestado 1. "+info.top+" + 10 = "+(info.top+10)+", y "+(info.top+10)+" − "+info.bi+" = "+info.res+". El 1 prestado se apunta arriba de la siguiente columna.";
+    const eff=info.top;
+    const base = info.bin ? ("El "+info.ai+" está tachado porque prestó 1: ahora es un "+eff+". ") : "";
+    return base+cap+": "+eff+" − "+info.bi+" no se puede. El vecino de la izquierda le presta 1 y el "+eff+" se convierte en "+(eff+10)+" (mira el 1 pequeñito). "+(eff+10)+" − "+info.bi+" = "+info.res+".";
   } else if(info.bin){
-    return cap+": mira el 1 apuntado arriba. "+info.ai+" − 1 = "+info.top+", y "+info.top+" − "+info.bi+" = "+info.res+".";
+    return cap+": el "+info.ai+" está tachado porque prestó 1. Ahora es un "+info.top+", y "+info.top+" − "+info.bi+" = "+info.res+".";
   }
   return cap+": "+info.ai+" − "+info.bi+" = "+info.res+".";
 }
@@ -1580,7 +1626,7 @@ document.getElementById("c-done").onclick=finishCreate;
 document.getElementById("i-start").onclick=startQuiz;
 document.getElementById("q-hintbtn").onclick=()=>{
   hintTaps++;
-  if(mode==="columns"){ if(!dCells[dActive].locked) qClean=false; revealed=true; showHint(colExplain(dActive)); }
+  if(mode==="columns"){ if(!dCells[dActive].locked) qClean=false; revealed=true; paintBorrow(dActive); showHint(colExplain(dActive)); }
   else { revealed=true; showHint(questionHint(hintTaps>=2)); }
 };
 document.getElementById("muteBtn").onclick=()=>{

@@ -60,8 +60,11 @@ en PDF.
   - Estado del quiz: `curDay` (SIEMPRE un clon del día: `next()` puede añadir
     repeticiones de preguntas falladas), `qi`, y para restas el modo `columns`
     con `dCells`/`dInfo` (una casilla por columna U/D/C, desbloqueo secuencial
-    derecha→izquierda; al resolver una columna con llevada se pinta un "1" en
-    la `.cbox` de la siguiente). Otros tipos usan `slots` con `tr` (intentos
+    derecha→izquierda). La llevada usa la notación escolar vía `paintBorrow()`:
+    el dígito que recibe 10 lleva un "1" pequeñito delante (3→¹3) y el que
+    presta queda tachado con su nuevo valor encima (9→8̶; el 0 encadenado →9);
+    `wex()` en Python pinta lo mismo en los ejemplos de las intros. Otros
+    tipos usan `slots` con `tr` (intentos
     por casilla — así los `steps` de 2 pasos puntúan bien las estrellas).
   - Ayuda en 2 niveles: `questionHint(deep)` — sin `deep` da estrategia sin
     resultado; `deep` (2º toque de 💡 o 4 fallos) da la respuesta. Pulsar 💡
