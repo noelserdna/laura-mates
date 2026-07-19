@@ -5,10 +5,12 @@ App web educativa para una niña de ~7 años (Laura) que repasa mates en verano:
 restas con llevadas (2 y 3 cifras, con el "1" de la llevada pintado encima de
 cada columna), tablas de multiplicar del 2 al 10 (con dibujos de grupos y
 trucos por tabla), problemas ilustrados de 1 y 2 pasos y de comparación.
-Incluye un gato negro personalizable y animado con tienda de skins/accesorios
-comprados con estrellas, medallas, rachas, regalos sorpresa, sonidos (Web
-Audio), repaso automático de fallos y un tutor con IA opcional (Claude Haiku).
-También hay un cuaderno imprimible en PDF.
+Incluye una colonia de gatos personalizables con nombre (se adoptan con
+estrellas y pasean por la pantalla de inicio; al acariciarlos maúllan), tienda
+de skins/accesorios, medallas, rachas, regalos sorpresa, sonidos (Web Audio),
+repaso automático de fallos, días extra generados en el dispositivo (botón ➕)
+y un tutor con IA opcional (Claude Haiku). También hay un cuaderno imprimible
+en PDF.
 
 ## Principios de diseño (IMPORTANTE, respétalos)
 - **Un solo archivo, sin dependencias, offline.** La app final es
@@ -76,6 +78,18 @@ También hay un cuaderno imprimible en PDF.
   - Gato: `catSVG(state)` en `src/cat.js` compone capas (cola animada, espalda,
     cuerpo, orejas, cabeza, marcas de pelaje, ojos con `mood` "feliz"/"uy" y
     accesorios). Skins de premio: `solverano` (día 15) y `arcoiris` (día 30).
+  - Colonia: `progress.av` es SIEMPRE el gato activo (nombre en `av.catName`);
+    los demás viven en `progress.cats[]` con `progress.activeIdx`. `save()`
+    llama a `syncCat()` (vuelca av→cats); `loadCat(i)` hace el cambio inverso.
+    Adopción en la tienda (`adoptCat`, precio creciente, máx 6). En el home,
+    `renderColony()`+`colonyTick` (interval 50 ms, solo con home visible)
+    pasean los gatos; `petCat()` = maullido (`sfxMeow`) + salto + corazón.
+  - Días extra: botón ➕ en el mapa → `makeExtraDay()` genera en JS (sin red)
+    un día n≥31 (restas `genSubJS`, tablas con hechos difíciles, miss y
+    problema con plantillas `extraProb`) y lo guarda en `progress.extraDays`.
+    TODO recorrido de días debe usar `allDays()` (= `DATA.days` + extras),
+    nunca `DATA.days` directo (salvo la medalla `mfin`, que es de los 30
+    originales a propósito).
   - Sonidos: osciladores Web Audio (`sfxOk/sfxNo/sfxWin/sfxCoin`), silenciables
     con `progress.mute` (botón 🔊 del quiz).
 - **Tutor IA (`src/ai.js`, opcional):**

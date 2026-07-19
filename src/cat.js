@@ -16,6 +16,8 @@ function skinCfg(skin){
     sirena:     {base:"#20202c", ear:"#7de3d8", cheek:null},
     solverano:  {base:"#20202c", ear:"#ffd27a", cheek:"#ffb45e"},
     arcoiris:   {base:"#20202c", ear:"#ff9ec4", cheek:"#ffc4dd"},
+    gris:       {base:"#8a8f9c", ear:"#ffb9d4", cheek:null},
+    naranja:    {base:"#f0913c", ear:"#ffd2ae", cheek:null},
     galaxia:    {base:"#251a44", ear:"#b98cff", cheek:null},
   };
   return c[skin] || c.clasico;
@@ -76,6 +78,18 @@ function skinMarks(skin){
     let s="";
     cols.forEach((c,i)=>{ const r=34-i*4.5; s+=`<path d="M${100-r} 200 A${r} ${r} 0 0 1 ${100+r} 200" stroke="${c}" stroke-width="4.5" fill="none"/>`; });
     return s;
+  }
+  if(skin==="gris"){
+    return `<path d="M100 168 q-14 4 -12 22 q12 12 24 0 q2 -18 -12 -22z" fill="#c3c7d1"/>
+      <g stroke="#6d7280" stroke-width="4" stroke-linecap="round" fill="none">
+      <path d="M72 60 q6 8 0 16"/><path d="M100 54 q0 9 0 16"/><path d="M128 60 q-6 8 0 16"/></g>`;
+  }
+  if(skin==="naranja"){
+    return `<path d="M100 168 q-14 4 -12 22 q12 12 24 0 q2 -18 -12 -22z" fill="#ffe3c4"/>
+      <path d="M86 108 q14 10 28 0 l-4 12 q-10 6 -20 0z" fill="#ffe3c4" opacity=".85"/>
+      <g stroke="#c96f1e" stroke-width="4" stroke-linecap="round" fill="none">
+      <path d="M70 60 q6 8 0 16"/><path d="M100 54 q0 9 0 16"/><path d="M130 60 q-6 8 0 16"/>
+      <path d="M80 168 q6 9 0 18"/><path d="M120 168 q-6 9 0 18"/></g>`;
   }
   if(skin==="galaxia"){
     let s='<g class="gstars">';

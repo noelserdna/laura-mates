@@ -480,6 +480,26 @@ button{font-family:inherit; cursor:pointer; border:none;}
 .aiLoad{position:fixed; inset:0; background:rgba(42,35,80,.88); z-index:80; display:flex; flex-direction:column;
   align-items:center; justify-content:center; color:#fff; font-size:17px; font-weight:800; text-align:center; padding:20px;}
 .aiLoad .thinkCat{width:120px; animation:dance 1.2s ease-in-out infinite;}
+
+/* ---------- COLONIA DE GATOS ---------- */
+#home{padding-bottom:88px;}
+#colony .walkCat{position:fixed; bottom:0; left:0; width:64px; z-index:5; cursor:pointer;}
+#colony .wcInner{animation:wcBob 1.1s ease-in-out infinite;}
+#colony .wcInner.jump{animation:catJump .6s cubic-bezier(.5,1.6,.5,1);}
+@keyframes wcBob{50%{transform:translateY(-2.5px)}}
+.wcName{position:absolute; top:-20px; left:50%; transform:translateX(-50%); background:#fff; border-radius:10px;
+  padding:2px 8px; font-size:12px; font-weight:800; color:var(--ink); box-shadow:var(--shadow); opacity:0;
+  transition:opacity .3s; white-space:nowrap; pointer-events:none;}
+.wcName.on{opacity:1;}
+.nameInput{width:80%; max-width:260px; padding:10px; border:3px solid #d7d2ee; border-radius:14px; font-size:17px;
+  font-family:inherit; text-align:center; font-weight:800; color:var(--ink);}
+.colCtl{display:flex; align-items:center; justify-content:center; gap:8px; margin:4px 0; flex-wrap:wrap;}
+.colCtl .cbtn{background:#efeaff; color:var(--bg1); font-weight:800; font-size:18px; border-radius:12px; padding:6px 12px;}
+.colCtl .cname{font-weight:800; font-size:16px; color:var(--ink);}
+.adoptBtn{background:linear-gradient(160deg,#ffd54a,#ff9d2e); color:#5a3b00; font-weight:800; font-size:13px;
+  border-radius:12px; padding:8px 12px;}
+.adoptBtn[disabled]{opacity:.5;}
+.daycard.addcard{background:#fff6da; border:3px dashed #ffce54;}
 </style>
 </head>
 <body>
@@ -501,14 +521,17 @@ button{font-family:inherit; cursor:pointer; border:none;}
       <button class="reset" id="resetBtn">Borrar mi progreso</button>
       <button class="reset" id="famBtn">👨‍👩‍👧 Familia</button>
     </div>
+    <div id="colony"></div>
   </div>
 
   <!-- CREATE -->
   <div id="createView" class="hidden">
     <div class="createCard">
       <h2>¡Crea tu gato! 🐱</h2>
-      <p>Este será tu gato negro. Podrás vestirlo con las estrellas que ganes.</p>
+      <p>Tu primer gatito. Podrás vestirlo, ponerle nombre y adoptar más amigos.</p>
       <div class="bigCat" id="c-cat"></div>
+      <div class="pickTtl">¿Cómo se llama?</div>
+      <input type="text" id="c-name" class="nameInput" maxlength="12" placeholder="Su nombre">
       <div class="pickTtl">Elige el color de sus ojos</div>
       <div class="swatches" id="c-eyes"></div>
       <button class="startbtn" id="c-done">¡Listo! Empezar 🚀</button>
@@ -518,7 +541,7 @@ button{font-family:inherit; cursor:pointer; border:none;}
   <!-- SHOP -->
   <div id="shopView" class="hidden">
     <div class="topbar"><button class="back" id="s-back">← Mapa</button><div class="topttl">🛍️ Tienda del gato</div></div>
-    <div class="catBig"><div class="bigCat" id="s-cat"></div><span class="wallet" id="s-wallet"></span></div>
+    <div class="catBig"><div class="bigCat" id="s-cat"></div><div class="colCtl" id="s-colctl"></div><span class="wallet" id="s-wallet"></span></div>
     <div class="tabs" id="s-tabs"></div>
     <div class="items" id="s-items"></div>
   </div>
@@ -582,9 +605,18 @@ function sfxOk(){ tone(523,0,.12); tone(784,.1,.15); }
 function sfxNo(){ tone(220,0,.18,"triangle",.12); }
 function sfxWin(){ [523,659,784,1046].forEach((f,i)=>tone(f,i*.12,.2)); }
 function sfxCoin(){ tone(988,0,.08); tone(1319,.07,.18); }
+function sfxMeow(){ if(!AC||progress.mute) return; try{
+  const o=AC.createOscillator(),g=AC.createGain(); o.type="sawtooth";
+  const t=AC.currentTime;
+  o.frequency.setValueAtTime(540,t);
+  o.frequency.exponentialRampToValueAtTime(390,t+.16);
+  o.frequency.exponentialRampToValueAtTime(300,t+.32);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.13,t+.05);
+  g.gain.exponentialRampToValueAtTime(.001,t+.36);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+.4); }catch(e){} }
 const EYE_LIST=[{id:"verde",c:"#3ad07a",n:"Verde"},{id:"ambar",c:"#ffb02e",n:"Ámbar"},{id:"azul",c:"#4bb8ff",n:"Azul"},{id:"rosa",c:"#ff77c8",n:"Rosa"},{id:"lila",c:"#b98cff",n:"Lila"}];
-const SKINS=[{id:"clasico",name:"Clásico",cost:0},{id:"esmoquin",name:"Esmoquin",cost:10},{id:"corazon",name:"Corazón",cost:12},{id:"rayado",name:"Rayitas",cost:12},{id:"calcetines",name:"Calcetines",cost:12},{id:"vaca",name:"Manchitas",cost:15},{id:"dorado",name:"Motas de oro",cost:16},{id:"sirena",name:"Sirenita",cost:18},{id:"galaxia",name:"Galaxia",cost:20},{id:"solverano",name:"Sol de verano",cost:null,prize:"Premio del día 15"},{id:"arcoiris",name:"Arcoíris",cost:null,prize:"Premio del día 30"}];
-const SKIN_EMOJI={clasico:"🐱",esmoquin:"🤵",corazon:"💗",rayado:"🐯",vaca:"🐄",calcetines:"🧦",dorado:"✨",sirena:"🧜‍♀️",galaxia:"🌌",solverano:"🌞",arcoiris:"🌈"};
+const SKINS=[{id:"clasico",name:"Clásico",cost:0},{id:"esmoquin",name:"Esmoquin",cost:10},{id:"corazon",name:"Corazón",cost:12},{id:"rayado",name:"Rayitas",cost:12},{id:"calcetines",name:"Calcetines",cost:12},{id:"gris",name:"Gatito gris",cost:14},{id:"naranja",name:"Gatito naranja",cost:14},{id:"vaca",name:"Manchitas",cost:15},{id:"dorado",name:"Motas de oro",cost:16},{id:"sirena",name:"Sirenita",cost:18},{id:"galaxia",name:"Galaxia",cost:20},{id:"solverano",name:"Sol de verano",cost:null,prize:"Premio del día 15"},{id:"arcoiris",name:"Arcoíris",cost:null,prize:"Premio del día 30"}];
+const SKIN_EMOJI={clasico:"🐱",esmoquin:"🤵",corazon:"💗",rayado:"🐯",vaca:"🐄",calcetines:"🧦",gris:"🩶",naranja:"🧡",dorado:"✨",sirena:"🧜‍♀️",galaxia:"🌌",solverano:"🌞",arcoiris:"🌈"};
 const ITEMS=[
  {id:"lazo",slot:"head",name:"Lazo",emoji:"🎀",cost:5},
  {id:"fiesta",slot:"head",name:"Gorro fiesta",emoji:"🎉",cost:4},
@@ -615,19 +647,20 @@ const MEDALS=[
  {id:"mr7",emoji:"🧨",name:"Racha de 7 días"},
  {id:"mfin",emoji:"🏆",name:"¡Verano completo!"}
 ];
-function daysDone(){ return DATA.days.filter(d=>progress[d.n]!=null).length; }
+function allDays(){ return DATA.days.concat(progress.extraDays||[]); }
+function daysDone(){ return allDays().filter(d=>progress[d.n]!=null).length; }
 function medalCond(id){
   const p=progress;
   if(id==="m1") return totalStars()>=1;
   if(id==="m5d") return daysDone()>=5;
   if(id==="m15") return p[15]!=null;
-  if(id==="mperf") return DATA.days.some(d=>p[d.n]===3);
-  if(id==="m3perf") return DATA.days.filter(d=>p[d.n]===3).length>=3;
+  if(id==="mperf") return allDays().some(d=>p[d.n]===3);
+  if(id==="m3perf") return allDays().filter(d=>p[d.n]===3).length>=3;
   if(id==="mtab") return [4,5,10,12,16,19,25,26].every(n=>p[n]!=null);
   if(id==="m50") return totalStars()>=50;
   if(id==="mr3") return (p.streak||0)>=3;
   if(id==="mr7") return (p.streak||0)>=7;
-  if(id==="mfin") return daysDone()>=30;
+  if(id==="mfin") return DATA.days.every(d=>p[d.n]!=null);
   return false;
 }
 function checkMedals(){
@@ -636,25 +669,52 @@ function checkMedals(){
   return nue;
 }
 function avInit(){
-  if(!progress.av) progress.av={created:false,name:NAME,eye:"verde",skin:"clasico",head:null,eyes:null,neck:null,back:null,owned:["clasico"]};
+  if(!progress.av) progress.av={created:false,name:NAME,catName:null,eye:"verde",skin:"clasico",head:null,eyes:null,neck:null,back:null,owned:["clasico"]};
   const a=progress.av;
   if(!a.owned) a.owned=["clasico"];
   if(a.owned.indexOf("clasico")<0) a.owned.push("clasico");
   if(!a.skin) a.skin="clasico";
   if(!a.eye) a.eye="verde";
   if(!a.name) a.name=NAME;
+  if(a.catName===undefined) a.catName=null;
   if(!progress.medals) progress.medals=[];
   if(!progress.stats) progress.stats={};
+  // colonia: el gato activo vive en progress.av; los demás, guardados en progress.cats
+  if(!progress.cats || !progress.cats.length){ progress.cats=[snapCat()]; progress.activeIdx=0; }
+  if(progress.activeIdx==null || progress.activeIdx>=progress.cats.length) progress.activeIdx=0;
+}
+function snapCat(){ const a=progress.av; return {catName:a.catName||null,skin:a.skin,eye:a.eye,head:a.head,eyes:a.eyes,neck:a.neck,back:a.back}; }
+function syncCat(){ if(progress.cats && progress.cats.length) progress.cats[progress.activeIdx||0]=snapCat(); }
+function loadCat(i){
+  const c=progress.cats && progress.cats[i]; if(!c) return;
+  progress.activeIdx=i;
+  progress.av.catName=c.catName; progress.av.skin=c.skin; progress.av.eye=c.eye;
+  progress.av.head=c.head; progress.av.eyes=c.eyes; progress.av.neck=c.neck; progress.av.back=c.back;
+}
+function catLabel(){ return (progress.av.catName||"").trim()||"Tu gato"; }
+function adoptCost(){ return 15+progress.cats.length*10; }
+function adoptCat(){
+  const cost=adoptCost();
+  if(progress.cats.length>=6 || wallet()<cost) return;
+  const nm=prompt("¡Vas a adoptar un gatito! 🐱\n¿Cómo se llama?");
+  if(nm===null) return;
+  progress.spent=(progress.spent||0)+cost;
+  syncCat();
+  progress.cats.push({catName:(nm||"").trim()||null,skin:"clasico",
+    eye:["verde","ambar","azul","rosa","lila"][Math.floor(Math.random()*5)],
+    head:null,eyes:null,neck:null,back:null});
+  loadCat(progress.cats.length-1);
+  save(); sfxCoin(); spawn(8,2000,["💖","🐱","⭐"]); renderShop(); catTryOn();
 }
 function avState(){ const a=progress.av; return {skin:a.skin,eye:a.eye,head:a.head,eyes:a.eyes,neck:a.neck,back:a.back}; }
-function totalStars(){ let s=0; DATA.days.forEach(d=>{ if(progress[d.n]!=null) s+=progress[d.n]; }); return s+(progress.extra||0)+(progress.bonus||0); }
+function totalStars(){ let s=0; allDays().forEach(d=>{ if(progress[d.n]!=null) s+=progress[d.n]; }); return s+(progress.extra||0)+(progress.bonus||0); }
 function wallet(){ return totalStars()-(progress.spent||0); }
 function owns(id){ return progress.av.owned.indexOf(id)>=0; }
 
 // ---- storage (a prueba de fallos) ----
 let progress = {};
 function load(){ try{ progress = JSON.parse(localStorage.getItem("laura_mates")||"{}"); }catch(e){ progress={}; } }
-function save(){ try{ localStorage.setItem("laura_mates", JSON.stringify(progress)); }catch(e){} }
+function save(){ try{ syncCat(); localStorage.setItem("laura_mates", JSON.stringify(progress)); }catch(e){} }
 load(); avInit(); famLoad();
 
 // ---- helpers de respuesta ----
@@ -767,10 +827,11 @@ function renderHome(){
   // hero con mensaje según estado
   let cheapest=null;
   SKINS.concat(ITEMS).forEach(it=>{ if(it.cost && !owns(it.id) && (cheapest==null||it.cost<cheapest)) cheapest=it.cost; });
-  let sub="Este es tu gato negro";
+  const nm=catLabel();
+  let sub=(progress.cats&&progress.cats.length>1)?"Esta es tu colonia de gatos 🐾":"Este es "+nm;
   if(cheapest!=null && wallet()>=cheapest) sub="¡Tienes ⭐ para estrenar algo en la tienda!";
-  else if(days>0 && days%5===4) sub="🎁 ¡Un día más y el gato te trae un regalo!";
-  else sub=["Este es tu gato negro","Hoy es un gran día para las mates ✨","Tu gato cree en ti 🐾","¡A por las estrellas! ⭐"][new Date().getDate()%4];
+  else if(days>0 && days%5===4) sub="🎁 ¡Un día más y "+nm+" te trae un regalo!";
+  else sub=[sub,"Hoy es un gran día para las mates ✨",nm+" cree en ti 🐾","¡A por las estrellas! ⭐"][new Date().getDate()%4];
   document.getElementById("hero").innerHTML=
     '<div class="heroCat">'+catSVG(avState())+'</div>'+
     '<div class="hInfo"><div class="hHi">¡Hola, '+progress.av.name+'! 👋</div>'+
@@ -786,14 +847,14 @@ function renderHome(){
   // reto del gato (solo si la familia activó la IA)
   const rb=document.getElementById("retoBtn");
   rb.classList.toggle("hidden", !(typeof aiOn==="function" && aiOn()));
-  const nextDay = (DATA.days.find(d=>progress[d.n]==null)||{}).n;
+  const nextDay = (allDays().find(d=>progress[d.n]==null)||{}).n;
   const g=document.getElementById("grid"); g.innerHTML="";
-  DATA.days.forEach(d=>{
+  allDays().forEach(d=>{
     const done=progress[d.n]!=null;
     const el=document.createElement("button");
     el.className="daycard"+(done?" done":"")+(d.n===nextDay?" next":"");
     let st = done ? "⭐".repeat(progress[d.n]) : (d.n===nextDay?"👉":"");
-    el.innerHTML=(d.new?'<span class="newdot">NUEVO</span>':'')+
+    el.innerHTML=(d.new?'<span class="newdot">NUEVO</span>':(d.extra?'<span class="newdot">EXTRA</span>':''))+
       '<div class="dn">'+d.n+'</div><div class="dl">'+d.theme+'</div><div class="st">'+st+'</div>';
     el.onclick=()=>openDay(d.n);
     g.appendChild(el);
@@ -805,11 +866,17 @@ function renderHome(){
     el.onclick=openReview;
     g.appendChild(el);
   }
+  const add=document.createElement("button");
+  add.className="daycard addcard";
+  add.innerHTML='<div class="dn">➕</div><div class="dl">¡Un día nuevo con sorpresas!</div><div class="st">🐾</div>';
+  add.onclick=addExtraDay;
+  g.appendChild(add);
+  renderColony();
   show("home");
 }
 
 function openDay(n){
-  const d=DATA.days.find(x=>x.n===n);
+  const d=allDays().find(x=>x.n===n);
   curDay=Object.assign({},d,{qs:d.qs.map(q=>Object.assign({},q))}); qi=0; firstTryCorrect=0;
   if(curDay.intro){
     document.getElementById("i-ttl").textContent="Día "+n;
@@ -824,6 +891,62 @@ function openReview(){
   if(!qs.length) return;
   curDay={n:0,theme:"Mi repaso 🔁",review:true,qs:qs}; qi=0; firstTryCorrect=0;
   startQuiz();
+}
+
+// ---- días extra generados en el dispositivo (sin red) ----
+function rndInt(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function pickA(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function countBorrowsJS(a,b){
+  const w=Math.max((''+a).length,(''+b).length);
+  const da=(''+a).padStart(w,'0').split('').map(Number), db=(''+b).padStart(w,'0').split('').map(Number);
+  let bo=0,c=0;
+  for(let i=w-1;i>=0;i--){ const cur=da[i]-bo; if(cur<db[i]){c++;bo=1;}else bo=0; }
+  return c;
+}
+function genSubJS(loA,hiA,loB,hiB,borrows){
+  for(let t=0;t<5000;t++){
+    const a=rndInt(loA,hiA), b=rndInt(loB,Math.min(hiB,a));
+    if(a-b<1) continue;
+    const c=countBorrowsJS(a,b);
+    if(borrows===0&&c!==0) continue;
+    if(borrows==="any"&&c===0) continue;
+    return [a,b];
+  }
+  return [75,38];
+}
+const EXTRA_NOUNS=[["🍓","fresas","Cuántas"],["🍪","galletas","Cuántas"],["🎈","globos","Cuántos"],["🐟","peces","Cuántos"],["🌸","flores","Cuántas"],["🍬","caramelos","Cuántos"],["⭐","estrellas","Cuántas"]];
+function extraProb(){
+  const k=rndInt(0,3), N=pickA(EXTRA_NOUNS);
+  if(k===0){ const g=rndInt(3,6), p=rndInt(3,6);
+    return {t:"prob",text:"Hay "+g+" cajas con "+p+" "+N[1]+" cada una. ¿"+N[2]+" hay en total?",
+            illus:{mode:"groups",e:N[0],g:g,per:p},ans:g*p}; }
+  if(k===1){ const a=rndInt(9,16), b=rndInt(3,a-2);
+    return {t:"prob",text:"Había "+a+" "+N[1]+" y se fueron "+b+". ¿"+N[2]+" quedan?",
+            illus:{mode:"row",e:N[0],n:a,cross:b},ans:a-b}; }
+  if(k===2){ const a=rndInt(8,14), b=rndInt(3,a-2), nm=catLabel();
+    return {t:"prob",text:nm+" tiene "+a+" "+N[1]+" y "+NAME+" tiene "+b+". ¿"+N[2]+" más tiene "+nm+"?",
+            illus:{mode:"compare",e1:N[0],n1:a,e2:N[0],n2:b},ans:a-b}; }
+  const p=genSubJS(150,999,110,899,"any");
+  return {t:"prob",text:"En la biblioteca hay "+p[0]+" libros y se prestan "+p[1]+". ¿Cuántos libros quedan?",
+          illus:{mode:"bignum",text:p[0]+" − "+p[1]},ans:p[0]-p[1]};
+}
+function makeExtraDay(){
+  const qs=[];
+  const p2=genSubJS(30,99,10,89,"any"); qs.push({t:"sub",a:p2[0],b:p2[1]});
+  for(let i=0;i<2;i++){ const p=genSubJS(200,999,110,899,"any"); qs.push({t:"sub",a:p[0],b:p[1]}); }
+  const h=pickA([[7,8],[8,8],[9,9],[8,9],[7,9],[6,7],[6,8],[9,6],[7,6],[8,7]]);
+  qs.push({t:"mul",x:h[0],y:h[1]});
+  for(let i=0;i<2;i++){ qs.push({t:"mul",x:rndInt(2,10),y:rndInt(2,9)}); }
+  const ma=rndInt(3,9), mb=rndInt(2,9); qs.push({t:"miss",a:ma,r:ma*mb});
+  qs.push(extraProb());
+  const n=31+(progress.extraDays||[]).length;
+  const themes=["¡Mezcla total!","Tablas valientes","Restas y problemas","Un poco de todo","Reto sorpresa"];
+  return {n:n,theme:"Día extra: "+themes[(n-31)%themes.length],extra:true,qs:qs};
+}
+function addExtraDay(){
+  progress.extraDays=progress.extraDays||[];
+  progress.extraDays.push(makeExtraDay());
+  save(); burst(); sfxCoin(); renderHome();
 }
 
 function startQuiz(){ qi=0; show("quizView"); document.getElementById("muteBtn").textContent=progress.mute?"🔇":"🔊"; renderQ(); }
@@ -1107,7 +1230,7 @@ function finishDay(){
   bigConfetti(); sfxWin();
   if(stars===3) setTimeout(bigConfetti,600);
 
-  const nextN = (DATA.days.find(d=>progress[d.n]==null)||{}).n;
+  const nextN = (allDays().find(d=>progress[d.n]==null)||{}).n;
   let dip="";
   if(skinPrize){
     dip+='<div class="diploma"><div class="dh">'+skinPrize.tit+'</div>'+
@@ -1153,7 +1276,7 @@ function aiDayMsg(dayN, stars, ok, total){
   if(progress.aiMsgs[dayN]){ put(progress.aiMsgs[dayN]); return; }
   if(!aiAllowed("msgs")) return;
   const ctx={tema:curDay.theme, estrellas:stars, aciertos_a_la_primera:ok, de:total, racha_dias:progress.streak||0,
-             gato:{pelaje:progress.av.skin, cabeza:progress.av.head, gafas:progress.av.eyes, cuello:progress.av.neck, espalda:progress.av.back}};
+             gato:{nombre:progress.av.catName||null, pelaje:progress.av.skin, cabeza:progress.av.head, gafas:progress.av.eyes, cuello:progress.av.neck, espalda:progress.av.back}};
   aiCall(AI_MSG_SYS, JSON.stringify(ctx), AI_MSG_SCHEMA, 150, "msgs").then(r=>{
     if(!r||!r.mensaje) return;
     if(curDay && curDay.n===dayN && !document.getElementById("doneView").classList.contains("hidden")){
@@ -1167,6 +1290,7 @@ let createEye="verde";
 function renderCreate(){
   createEye = progress.av.eye || "verde";
   drawCreateCat();
+  const nv=document.getElementById("c-name"); if(nv) nv.value=progress.av.catName||"";
   const box=document.getElementById("c-eyes"); box.innerHTML="";
   EYE_LIST.forEach(e=>{ const b=document.createElement("button");
     b.className="sw"+(e.id===createEye?" sel":""); b.style.background=e.c;
@@ -1174,13 +1298,37 @@ function renderCreate(){
   show("createView");
 }
 function drawCreateCat(){ document.getElementById("c-cat").innerHTML=catSVG({skin:"clasico",eye:createEye}); }
-function finishCreate(){ progress.av.eye=createEye; progress.av.created=true; save(); burst(); renderHome(); }
+function finishCreate(){
+  const nv=document.getElementById("c-name");
+  if(nv) progress.av.catName=(nv.value||"").trim()||null;
+  progress.av.eye=createEye; progress.av.created=true;
+  save(); burst(); renderHome();
+}
+function renameCat(){
+  const nv=prompt("¿Cómo se llama tu gato? ✏️", progress.av.catName||"");
+  if(nv===null) return;
+  progress.av.catName=(nv||"").trim()||null;
+  save(); renderShop();
+}
 
 let shopTab="skin";
 function openShop(){ shopTab="skin"; renderShop(); }
 function renderShop(){
   document.getElementById("s-cat").innerHTML=catSVG(avState());
   document.getElementById("s-wallet").textContent="⭐ "+wallet()+" para gastar";
+  // colonia: cambiar de gato, renombrar y adoptar
+  const ci=progress.activeIdx||0, nCats=progress.cats.length;
+  const ctl=document.getElementById("s-colctl");
+  ctl.innerHTML=(nCats>1?'<button class="cbtn" id="col-prev">‹</button>':'')+
+    '<span class="cname">'+escT(catLabel())+(nCats>1?' ('+(ci+1)+'/'+nCats+')':'')+'</span>'+
+    '<button class="cbtn" id="col-ren" style="font-size:13px">✏️</button>'+
+    (nCats>1?'<button class="cbtn" id="col-next">›</button>':'')+
+    (nCats<6?'<button class="adoptBtn" id="col-adopt"'+(wallet()>=adoptCost()?'':' disabled')+'>🐱 Adoptar · '+adoptCost()+'⭐</button>':'');
+  const prev=document.getElementById("col-prev"), nxt=document.getElementById("col-next"), ad=document.getElementById("col-adopt");
+  document.getElementById("col-ren").onclick=renameCat;
+  if(prev) prev.onclick=()=>{ loadCat((ci-1+nCats)%nCats); save(); renderShop(); catTryOn(); };
+  if(nxt) nxt.onclick=()=>{ loadCat((ci+1)%nCats); save(); renderShop(); catTryOn(); };
+  if(ad) ad.onclick=adoptCat;
   const tabs=[["skin","Pelaje 🐈"],["head","Cabeza 🎩"],["eyes","Gafas 👓"],["neck","Cuello 🎀"],["back","Espalda 🦋"],["eyecolor","Ojos 👀"]];
   const tb=document.getElementById("s-tabs"); tb.innerHTML="";
   tabs.forEach(t=>{ const b=document.createElement("button"); b.className="tab"+(t[0]===shopTab?" sel":"");
@@ -1277,17 +1425,17 @@ function aiOverlay(html){
 }
 async function startReto(){
   if(!aiAllowed("retos")){
-    const d=aiOverlay('<div class="thinkCat">'+catSVG(Object.assign(avState(),{mood:"uy"}))+'</div><div>El gato está durmiendo 😴<br>¡Prueba mañana!</div>');
+    const d=aiOverlay('<div class="thinkCat">'+catSVG(Object.assign(avState(),{mood:"uy"}))+'</div><div>'+escT(catLabel())+' está durmiendo 😴<br>¡Prueba mañana!</div>');
     setTimeout(()=>d.remove(),2000); return;
   }
-  const d=aiOverlay('<div class="thinkCat">'+catSVG(avState())+'</div><div>El gato está pensando<br>ejercicios para ti… 🐾</div>');
-  const hechos=DATA.days.filter(x=>progress[x.n]!=null).map(x=>({dia:x.n,tema:x.theme,estrellas:progress[x.n]}));
+  const d=aiOverlay('<div class="thinkCat">'+catSVG(avState())+'</div><div>'+escT(catLabel())+' está pensando<br>ejercicios para ti… 🐾</div>');
+  const hechos=allDays().filter(x=>progress[x.n]!=null).map(x=>({dia:x.n,tema:x.theme,estrellas:progress[x.n]}));
   const ctx={dias_hechos:hechos, aciertos_y_fallos:progress.stats||{}, fallos_recientes:(progress.errs||[]).map(errKey)};
   const r=await aiCall(AI_RETO_SYS, JSON.stringify(ctx), AI_RETO_SCHEMA, 1200, "retos");
   d.remove();
   const qs=r?aiMapEjercicios(r.ejercicios):[];
   if(qs.length<3){
-    const d2=aiOverlay('<div class="thinkCat">'+catSVG(Object.assign(avState(),{mood:"uy"}))+'</div><div>El gato está durmiendo 😴<br>¡Prueba más tarde!</div>');
+    const d2=aiOverlay('<div class="thinkCat">'+catSVG(Object.assign(avState(),{mood:"uy"}))+'</div><div>'+escT(catLabel())+' está durmiendo 😴<br>¡Prueba más tarde!</div>');
     setTimeout(()=>d2.remove(),2000); return;
   }
   curDay={n:"IA",theme:"Reto del gato 🐾",qs:qs}; qi=0; firstTryCorrect=0;
@@ -1343,6 +1491,49 @@ function renderFamily(){
   };
   show("familyView");
 }
+
+// ================= COLONIA PASEANTE (pantalla de inicio) =================
+let colonyCats=[];
+function renderColony(){
+  const box=document.getElementById("colony"); if(!box) return;
+  box.innerHTML=""; colonyCats=[];
+  (progress.cats&&progress.cats.length?progress.cats:[snapCat()]).forEach((c,i)=>{
+    const d=document.createElement("div"); d.className="walkCat";
+    d.innerHTML='<div class="wcName"></div><div class="wcFlip"><div class="wcInner">'+catSVG(c)+'</div></div>';
+    d.querySelector(".wcName").textContent=c.catName||"miau";
+    const w={el:d,flip:d.querySelector(".wcFlip"),inner:d.querySelector(".wcInner"),
+             x:20+i*85,dir:(i%2?-1:1),pause:rndInt(0,50),speed:.7+Math.random()*.9};
+    d.onclick=()=>petCat(w);
+    d.style.transform="translateX("+w.x+"px)";
+    box.appendChild(d); colonyCats.push(w);
+  });
+}
+function petCat(w){
+  sfxMeow(); w.pause=34;
+  w.inner.classList.remove("jump"); void w.inner.offsetWidth; w.inner.classList.add("jump");
+  setTimeout(()=>w.inner.classList.remove("jump"),700);
+  const nm=w.el.querySelector(".wcName"); nm.classList.add("on");
+  setTimeout(()=>nm.classList.remove("on"),1600);
+  try{ const r=w.el.getBoundingClientRect(); const s=document.createElement("div");
+    s.className="spk"; s.textContent="💖"; s.style.left=(r.left+22)+"px"; s.style.top=(r.top-10)+"px";
+    document.body.appendChild(s); setTimeout(()=>s.remove(),750); }catch(e){}
+}
+function colonyTick(){
+  if(!colonyCats.length) return;
+  const home=document.getElementById("home");
+  if(!home || home.classList.contains("hidden")) return;
+  const max=Math.max(80,window.innerWidth-72);
+  colonyCats.forEach(w=>{
+    if(w.pause>0){ w.pause--; return; }
+    w.x+=w.dir*w.speed;
+    if(w.x>=max) w.dir=-1;
+    if(w.x<=4) w.dir=1;
+    if(Math.random()<0.004) w.pause=rndInt(30,110);
+    w.el.style.transform="translateX("+w.x+"px)";
+    w.flip.style.transform="scaleX("+(w.dir>0?-1:1)+")";
+  });
+}
+setInterval(colonyTick,50);
 
 // ---- eventos ----
 document.getElementById("i-back").onclick=renderHome;
