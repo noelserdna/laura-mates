@@ -659,6 +659,7 @@ const ITEMS=[
  {id:"gorro",slot:"head",name:"Gorro de lana",emoji:"🧢",cost:8},
  {id:"mago",slot:"head",name:"Sombrero mago",emoji:"🪄",cost:12},
  {id:"corona",slot:"head",name:"Corona",emoji:"👑",cost:15},
+ {id:"cucurella",slot:"head",name:"Pelo Cucurella",emoji:"🦱",cost:6},
  {id:"gafas",slot:"eyes",name:"Gafas",emoji:"👓",cost:6},
  {id:"gafas_sol",slot:"eyes",name:"Gafas de sol",emoji:"🕶️",cost:8},
  {id:"antifaz",slot:"eyes",name:"Antifaz",emoji:"🦸",cost:10},
@@ -666,6 +667,7 @@ const ITEMS=[
  {id:"pajarita",slot:"neck",name:"Pajarita",emoji:"🎗️",cost:6},
  {id:"bandana",slot:"neck",name:"Bandana",emoji:"💠",cost:7},
  {id:"bufanda",slot:"neck",name:"Bufanda",emoji:"🧣",cost:9},
+ {id:"copa",slot:"neck",name:"Copa del Mundial",emoji:"🏆",cost:5},
  {id:"mochila",slot:"back",name:"Mochila",emoji:"🎒",cost:10},
  {id:"capa",slot:"back",name:"Capa de héroe",emoji:"🦸",cost:12},
  {id:"alitas",slot:"back",name:"Alitas",emoji:"🦋",cost:14}

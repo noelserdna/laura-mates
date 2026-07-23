@@ -109,6 +109,16 @@ function accHead(id){
   if(id==="gorro") return `<g><path d="M60 44 Q100 6 140 44 Z" fill="#7b5cff"/><rect x="58" y="40" width="84" height="12" rx="6" fill="#5a3fd6"/><circle cx="100" cy="10" r="9" fill="#fff"/></g>`;
   if(id==="mago") return `<g><path d="M100 -6 L74 46 L126 46 Z" fill="#5a3fd6"/><rect x="66" y="44" width="68" height="9" rx="4" fill="#3d2a9e"/><path d="M96 20 l3 5 5 1 -4 4 1 5 -5 -3 -5 3 1 -5 -4 -4 5 -1z" fill="#ffcc33"/></g>`;
   if(id==="corona") return `<g><path d="M66 46 L70 20 L86 38 L100 14 L114 38 L130 20 L134 46 Z" fill="#ffcf3f" stroke="#e0a800" stroke-width="2"/><circle cx="100" cy="30" r="4" fill="#ff5b7f"/><circle cx="78" cy="34" r="3" fill="#4bb8ff"/><circle cx="122" cy="34" r="3" fill="#4bb8ff"/></g>`;
+  if(id==="cucurella") return `<g fill="#5b3a22" stroke="#3d2615" stroke-width="1.2">
+    <circle cx="58" cy="40" r="16"/><circle cx="76" cy="29" r="15"/><circle cx="94" cy="25" r="15"/>
+    <circle cx="112" cy="27" r="15"/><circle cx="130" cy="33" r="15"/><circle cx="145" cy="43" r="14"/>
+    <circle cx="46" cy="56" r="15"/><circle cx="40" cy="80" r="16"/><circle cx="46" cy="104" r="15"/>
+    <circle cx="38" cy="126" r="16"/><circle cx="45" cy="148" r="15"/><circle cx="37" cy="169" r="14"/>
+    <circle cx="44" cy="188" r="12"/>
+    <circle cx="154" cy="56" r="15"/><circle cx="160" cy="80" r="16"/><circle cx="154" cy="104" r="15"/>
+    <circle cx="162" cy="126" r="16"/><circle cx="155" cy="148" r="15"/><circle cx="163" cy="169" r="14"/>
+    <circle cx="156" cy="188" r="12"/>
+  </g>`;
   return "";
 }
 function accEyes(id){
@@ -124,6 +134,14 @@ function accNeck(id){
   if(id==="pajarita") return `<g><path d="M100 152 L80 142 Q76 152 80 162 Z" fill="#ff5b7f"/><path d="M100 152 L120 142 Q124 152 120 162 Z" fill="#ff5b7f"/><rect x="95" y="147" width="10" height="12" rx="3" fill="#d63a63"/></g>`;
   if(id==="bandana") return `<g><path d="M66 146 Q100 156 134 146 L118 176 Q100 184 82 176 Z" fill="#4dc9e6"/><g fill="#fff"><circle cx="90" cy="158" r="2.5"/><circle cx="110" cy="158" r="2.5"/><circle cx="100" cy="168" r="2.5"/></g></g>`;
   if(id==="bufanda") return `<g><path d="M60 148 Q100 166 140 148 Q142 160 132 166 Q100 178 68 166 Q58 160 60 148 Z" fill="#ff9d2e"/><path d="M120 164 l14 34 -16 -4 -6 -26 Z" fill="#ff8a00"/></g>`;
+  if(id==="copa") return `<g>
+    <path d="M78 130 Q100 145 122 130 Q124 148 100 156 Q76 148 78 130 Z" fill="#ffd54a" stroke="#c78a00" stroke-width="2"/>
+    <path d="M78 134 Q62 136 65 148 Q67 156 79 152" fill="none" stroke="#c78a00" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M122 134 Q138 136 135 148 Q133 156 121 152" fill="none" stroke="#c78a00" stroke-width="3.5" stroke-linecap="round"/>
+    <rect x="96" y="156" width="8" height="14" fill="#ffd54a" stroke="#c78a00" stroke-width="1.5"/>
+    <rect x="88" y="170" width="24" height="6" rx="2" fill="#ffcf3f" stroke="#c78a00" stroke-width="1.5"/>
+    <rect x="82" y="176" width="36" height="8" rx="2" fill="#2a2350"/>
+  </g>`;
   return "";
 }
 function accBack(id){
