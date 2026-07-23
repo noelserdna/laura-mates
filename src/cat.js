@@ -109,15 +109,32 @@ function accHead(id){
   if(id==="gorro") return `<g><path d="M60 44 Q100 6 140 44 Z" fill="#7b5cff"/><rect x="58" y="40" width="84" height="12" rx="6" fill="#5a3fd6"/><circle cx="100" cy="10" r="9" fill="#fff"/></g>`;
   if(id==="mago") return `<g><path d="M100 -6 L74 46 L126 46 Z" fill="#5a3fd6"/><rect x="66" y="44" width="68" height="9" rx="4" fill="#3d2a9e"/><path d="M96 20 l3 5 5 1 -4 4 1 5 -5 -3 -5 3 1 -5 -4 -4 5 -1z" fill="#ffcc33"/></g>`;
   if(id==="corona") return `<g><path d="M66 46 L70 20 L86 38 L100 14 L114 38 L130 20 L134 46 Z" fill="#ffcf3f" stroke="#e0a800" stroke-width="2"/><circle cx="100" cy="30" r="4" fill="#ff5b7f"/><circle cx="78" cy="34" r="3" fill="#4bb8ff"/><circle cx="122" cy="34" r="3" fill="#4bb8ff"/></g>`;
-  if(id==="cucurella") return `<g fill="#5b3a22" stroke="#3d2615" stroke-width="1.2">
-    <circle cx="58" cy="40" r="16"/><circle cx="76" cy="29" r="15"/><circle cx="94" cy="25" r="15"/>
-    <circle cx="112" cy="27" r="15"/><circle cx="130" cy="33" r="15"/><circle cx="145" cy="43" r="14"/>
-    <circle cx="46" cy="56" r="15"/><circle cx="40" cy="80" r="16"/><circle cx="46" cy="104" r="15"/>
-    <circle cx="38" cy="126" r="16"/><circle cx="45" cy="148" r="15"/><circle cx="37" cy="169" r="14"/>
-    <circle cx="44" cy="188" r="12"/>
-    <circle cx="154" cy="56" r="15"/><circle cx="160" cy="80" r="16"/><circle cx="154" cy="104" r="15"/>
-    <circle cx="162" cy="126" r="16"/><circle cx="155" cy="148" r="15"/><circle cx="163" cy="169" r="14"/>
-    <circle cx="156" cy="188" r="12"/>
+  if(id==="cucurella") return `<g stroke="#3d2615" stroke-width="1.2">
+    <g fill="#46301c">
+      <circle cx="50" cy="38" r="18"/><circle cx="68" cy="24" r="17"/><circle cx="86" cy="18" r="17"/>
+      <circle cx="100" cy="17" r="17"/><circle cx="114" cy="18" r="17"/><circle cx="132" cy="24" r="17"/>
+      <circle cx="150" cy="38" r="18"/>
+      <circle cx="30" cy="58" r="17"/><circle cx="26" cy="82" r="18"/><circle cx="30" cy="106" r="17"/>
+      <circle cx="24" cy="128" r="18"/><circle cx="29" cy="150" r="17"/><circle cx="23" cy="170" r="16"/>
+      <circle cx="28" cy="188" r="14"/>
+      <circle cx="170" cy="58" r="17"/><circle cx="174" cy="82" r="18"/><circle cx="170" cy="106" r="17"/>
+      <circle cx="176" cy="128" r="18"/><circle cx="171" cy="150" r="17"/><circle cx="177" cy="170" r="16"/>
+      <circle cx="172" cy="188" r="14"/>
+    </g>
+    <g fill="#5b3a22">
+      <circle cx="58" cy="40" r="17"/><circle cx="76" cy="29" r="16"/><circle cx="94" cy="25" r="16"/>
+      <circle cx="112" cy="27" r="16"/><circle cx="130" cy="33" r="16"/><circle cx="145" cy="43" r="15"/>
+      <circle cx="46" cy="56" r="16"/><circle cx="40" cy="80" r="17"/><circle cx="46" cy="104" r="16"/>
+      <circle cx="38" cy="126" r="17"/><circle cx="45" cy="148" r="16"/><circle cx="37" cy="169" r="15"/>
+      <circle cx="44" cy="188" r="13"/>
+      <circle cx="154" cy="56" r="16"/><circle cx="160" cy="80" r="17"/><circle cx="154" cy="104" r="16"/>
+      <circle cx="162" cy="126" r="17"/><circle cx="155" cy="148" r="16"/><circle cx="163" cy="169" r="15"/>
+      <circle cx="156" cy="188" r="13"/>
+    </g>
+    <g fill="#74492c" stroke="none">
+      <circle cx="94" cy="20" r="5"/><circle cx="130" cy="28" r="4.5"/><circle cx="42" cy="76" r="5"/>
+      <circle cx="158" cy="100" r="5"/><circle cx="44" cy="144" r="4.5"/><circle cx="156" cy="146" r="4.5"/>
+    </g>
   </g>`;
   return "";
 }
